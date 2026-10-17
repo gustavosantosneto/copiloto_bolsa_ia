@@ -1,4 +1,4 @@
-# mt5_copiloto_ia
+# copiloto_bolsa_ia
 
 Copiloto inteligente de trading integrado ao MetaTrader 5 via Python.
 

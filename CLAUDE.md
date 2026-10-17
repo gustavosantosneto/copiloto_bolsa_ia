@@ -1,4 +1,4 @@
-# CLAUDE.md — mt5_copiloto_ia
+# CLAUDE.md — copiloto_bolsa_ia
 
 ## Norte do projeto
 
