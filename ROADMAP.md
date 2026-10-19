@@ -23,12 +23,12 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> SQLite
 
 ## Backlog V1
 - [x] Estrutura Python + `config/parametros.toml` + `.env` (login MT5) — 2026-10-19
-- [ ] Serviço MT5: conectar, conta, posições, ordens, deals, símbolos
+- [x] Serviço MT5: conectar, conta, posições, ordens, deals, símbolos — 2026-10-19
 - [ ] Coletor: poll 1s, diff de tickets → evento de deal
 - [ ] Registro: deal + snapshot antes/depois → SQLite (+ export CSV `dados/historico_trades.csv`)
 - [ ] Capacidade operacional por ativo da watchlist
 - [ ] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md))
-- [ ] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade`
+- [ ] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` (feitos: todos menos `capacidade`; extra `simbolos`)
 - [ ] API leitura: mesmos recursos da CLI
 - [ ] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático
 
