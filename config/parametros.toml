@@ -1,0 +1,99 @@
+# Parâmetros do copiloto_bolsa_ia
+# Status por linha: [obs]=observado [pref]=preferência [hip]=hipótese [PENDENTE]=confirmar
+# Credenciais NUNCA aqui → .env
+
+[geral]
+ambiente = "demo"                  # demo | real. Real só por escolha explícita
+somente_leitura = true             # V1: sistema não envia ordens
+fuso = "America/Sao_Paulo"
+moeda = "BRL"
+
+[mt5]
+caminho_terminal = ""              # vazio = terminal padrão. Login/senha/servidor → .env
+timeout_conexao_ms = 10000
+tentativas_reconexao = 5
+intervalo_reconexao_s = 5
+
+[coletor]
+intervalo_poll_s = 1.0             # SDK sem listener → polling
+intervalo_poll_fora_pregao_s = 30
+intervalo_candles_s = 60
+historico_deals_dias = 30          # janela inicial de importação
+
+[pregao]
+abertura = "10:00"
+fechamento = "17:00"
+janela_operacao_inicio = "10:00"   # [pref]
+janela_operacao_fim = "15:00"      # [pref]
+
+[universo]
+watchlist = [                      # [obs] 2026-09-24
+  "ABEV3", "B3SA3", "BBAS3", "BBDC3", "BBSE3", "CXSE3", "ENEV3", "EQTL3", "ITSA4",
+  "ITUB4", "RADL3", "RDOR3", "RENT3", "SANB11", "SBSP3", "TIMS3", "VIVT3",
+]
+preco_max_acao = 50.0              # [pref] ~R$50
+
+[timeframes]
+principal = "M12"                  # [obs]
+auxiliar = "M6"                    # [pref]
+disponiveis = ["M2", "M6", "M12", "H1", "D1"]
+
+[operacao]
+lote_padrao = 100                  # múltiplos de 100
+corretagem = 0.0                   # [obs]
+emolumentos_pct = 0.0              # [PENDENTE] medir; 0 até calibrar
+max_operacoes_dia = 10              # [hip] referência, não trava
+ref_pct_nova_entrada = 0.25        # [hip] alternativas 0.15 / 0.40
+max_entradas_preco_medio = 10       # [PENDENTE]
+
+[risco]                            # [pref] usuário 2026-10-19
+perda_max_dia = 20                 # % do saldo no início do dia
+perda_max_operacao = 200           # R$
+exposicao_max_ativo_pct = 10.0     # % do patrimônio; base = valor posição
+exposicao_max_total_pct = 20.0     # % do patrimônio; base = valor posição
+margem_usada_max_pct = 20.0        # % do patrimônio; base = margem usada (limite separado)
+nivel_margem_min_pct = 2000      # alerta abaixo disso
+max_posicoes_abertas = 10
+alerta_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
+
+[registro]
+snapshot_antes_depois = true       # regra de gestão: todo deal
+comparar_margem_prevista = true    # vs order_calc_margin
+tolerancia_divergencia_margem_pct = 10.0
+csv_historico = "dados/historico_trades.csv"
+csv_base_operacional = "dados/base_operacional.csv"
+min_medicoes_margem_validada = 3   # medições p/ considerar margem confiável
+
+[persistencia]
+banco = "data/copiloto.sqlite"     # data/ fora do git
+
+[similaridade]                     # V2
+janela_sessoes = 100
+metodo_padrao = "pearson"          # pearson | xcorr | dtw | coint | granger
+base = "retorno_log"
+limiar_direta = 0.7
+limiar_inversa = -0.5
+lag_max_candles = 10
+pct_fora_amostra = 30
+
+[indicadores]                      # V3
+ema_periodo = 24                   # [obs] method=1
+rsi_periodo = 10                   # [obs]
+vwap = ["diaria", "semanal", "semana_anterior"]
+
+[api]
+host = "127.0.0.1"
+porta = 8000
+
+[painel]
+refresh_s = 2
+tema = "escuro"
+casas_decimais = 2
+
+[alertas]
+simbolo_sem_cotacao_s = 60         # sem tick há X s → alerta
+margem_zero_com_posicao = true     # anomalia XP Demo
+
+[log]
+nivel = "INFO"
+pasta = "logs"

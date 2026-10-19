@@ -1,0 +1,27 @@
+[project]
+name = "copiloto"
+version = "0.1.0"
+description = "Copiloto de trading integrado ao MetaTrader 5"
+requires-python = ">=3.13"
+dependencies = [
+    "MetaTrader5",
+    "pydantic>=2",
+    "python-dotenv",
+    "typer",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+copiloto = "copiloto.cli:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
