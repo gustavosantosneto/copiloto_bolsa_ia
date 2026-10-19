@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException
 
 from copiloto.capacidade import calcular
 from copiloto.config import carregar_config
+from copiloto.guardas import alertas_atuais
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
 
 
@@ -64,5 +65,9 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     def capacidade():
         return _ler(lambda s: calcular(s.cfg, s.conta(), s.posicoes(), s.simbolos(),
                                        lambda t, v, p: s.margem_prevista(t, "compra", v, p)))
+
+    @app.get("/alertas")
+    def alertas():
+        return _ler(alertas_atuais)
 
     return app

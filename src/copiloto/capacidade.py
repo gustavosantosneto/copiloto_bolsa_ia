@@ -7,8 +7,10 @@ Demo + simulacao.capital_simulado > 0 → conta simulada (saldo = capital; marge
 
 import math
 from collections.abc import Callable
+from datetime import datetime
 
 from copiloto.config import Config
+from copiloto.guardas import cotacao_viva
 
 
 def _lotes(disponivel: float, por_lote: float) -> int:
@@ -16,8 +18,8 @@ def _lotes(disponivel: float, por_lote: float) -> int:
 
 
 def calcular(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dict],
-             margem_prevista: Callable[[str, float, float], float | None]) -> dict:
-    sim, lote = cfg.simulacao, cfg.operacao.lote_padrao
+             margem_prevista: Callable[[str, float, float], float | None], agora: datetime | None = None) -> dict:
+    sim, lote, agora = cfg.simulacao, cfg.operacao.lote_padrao, agora or datetime.now()
     simulado = cfg.geral.ambiente == "demo" and sim.capital_simulado > 0
     universo = {s["ticker"] for s in simbolos}
     consideradas = [p for p in posicoes if p["ticker"] in universo] if simulado else posicoes
@@ -49,7 +51,7 @@ def calcular(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dict
     ativos = []
     for s in simbolos:
         t = s["ticker"]
-        preco = (s.get("ask") or s.get("ultimo")) if s.get("existe") else None
+        preco = (s.get("ask") or s.get("ultimo")) if cotacao_viva(cfg, s, agora) else None  # guarda
         folga_ativo = limite_ativo + lucro.get(t, 0.0)
         linha = {"ticker": t, "preco": preco, "qtd_carteira": sum(p["volume"] for p in consideradas if p["ticker"] == t),
                  "lucro_aberto": round(lucro.get(t, 0.0), 2), "folga_perda_ativo": round(folga_ativo, 2)}

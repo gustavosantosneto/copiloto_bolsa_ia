@@ -28,7 +28,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] Registro: deal + snapshot antes/depois → CSV `dados/historico_trades.csv` (append imediato + import do histórico MT5) — 2026-10-19
 - [ ] SQLite: só quando o histórico crescer (decidido 2026-10-19); CSV por enquanto
 - [x] Capacidade operacional por ativo da watchlist — 2026-10-19 (demo simulada R$5k × 200x)
-- [ ] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md))
+- [x] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md)) — 2026-10-19 (`copiloto alertas`, `/alertas`; capacidade zera sem cotação viva)
 - [x] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` + `simbolos`, `coletar` — 2026-10-19
 - [x] API leitura: mesmos recursos da CLI (FastAPI, `copiloto api`, GET only) — 2026-10-19
 - [ ] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático

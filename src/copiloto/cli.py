@@ -6,6 +6,7 @@ import typer
 
 from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
+from copiloto.guardas import alertas_atuais
 from copiloto.config import Config, ErroConfig, carregar_config
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
 from copiloto.registro import Registro
@@ -79,6 +80,17 @@ def historico(dias: int = typer.Option(None, help="padrão: coletor.historico_de
 def simbolos(tickers: list[str] = typer.Argument(None, help="padrão: watchlist")):
     """Info e última cotação dos símbolos."""
     _ler_mt5("simbolos", tickers=[t.upper() for t in tickers] if tickers else None)
+
+
+@app.command()
+def alertas():
+    """Guardas: símbolo sem cotação viva, posição com margem zero."""
+    try:
+        with ServicoMT5(_cfg()) as s:
+            _json(alertas_atuais(s))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
 
 
 @app.command()

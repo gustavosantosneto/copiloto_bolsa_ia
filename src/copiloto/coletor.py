@@ -10,6 +10,7 @@ from collections.abc import Callable, Iterator
 from datetime import datetime
 
 from copiloto.config import Config
+from copiloto.guardas import em_pregao
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
 
 CAMPOS_POSICAO = ("volume", "preco_medio", "sl", "tp")
@@ -70,10 +71,8 @@ class Coletor:
         return self.s.margem_prevista(d["ticker"], d["tipo"], d["volume"], d["preco"])
 
     def intervalo(self) -> float:
-        p, agora = self.cfg.pregao, datetime.now()
-        em_pregao = agora.weekday() < 5 and p.abertura <= agora.time() <= p.fechamento
         c = self.cfg.coletor
-        return c.intervalo_poll_s if em_pregao else c.intervalo_poll_fora_pregao_s
+        return c.intervalo_poll_s if em_pregao(self.cfg, datetime.now()) else c.intervalo_poll_fora_pregao_s
 
     def rodar(self, ciclos: int | None = None, dormir: Callable[[float], None] = time.sleep) -> Iterator[dict]:
         """Gera eventos para sempre (ou N ciclos). Erro MT5 → reconecta e segue."""
