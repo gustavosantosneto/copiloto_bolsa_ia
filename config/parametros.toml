@@ -56,6 +56,10 @@ nivel_margem_min_pct = 2000      # alerta abaixo disso
 max_posicoes_abertas = 10
 alerta_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
 
+[simulacao]                        # só ambiente=demo; em real ignorado (usa conta + MT5)
+capital_simulado = 5000.0          # [pref] 2026-10-19 R$; demo tem ~R$1mi irreal. 0 = usar conta
+alavancagem_simulada = 200.0       # [hip] 2026-10-19 até medir na real. 0 = margem prevista MT5
+
 [registro]
 snapshot_antes_depois = true       # regra de gestão: todo deal
 comparar_margem_prevista = true    # vs order_calc_margin

@@ -118,6 +118,11 @@ class Risco(Secao):
         return self
 
 
+class Simulacao(Secao):
+    capital_simulado: float = Field(ge=0)
+    alavancagem_simulada: float = Field(ge=0)
+
+
 class Registro(Secao):
     snapshot_antes_depois: bool
     comparar_margem_prevista: bool
@@ -187,6 +192,7 @@ class Config(Secao):
     timeframes: Timeframes
     operacao: Operacao
     risco: Risco
+    simulacao: Simulacao
     registro: Registro
     persistencia: Persistencia
     similaridade: Similaridade

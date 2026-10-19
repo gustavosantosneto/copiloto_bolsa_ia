@@ -4,6 +4,7 @@ import json
 
 import typer
 
+from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
 from copiloto.config import Config, ErroConfig, carregar_config
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
@@ -96,3 +97,15 @@ def coletar(ciclos: int = typer.Option(None, help="padrão: infinito (Ctrl+C par
         raise typer.Exit(1)
     except KeyboardInterrupt:
         pass
+
+
+@app.command()
+def capacidade():
+    """Lotes padrão operáveis por ativo da watchlist e o limite que trava cada um."""
+    try:
+        with ServicoMT5(_cfg()) as s:
+            _json(calcular(s.cfg, s.conta(), s.posicoes(), s.simbolos(),
+                           lambda t, v, p: s.margem_prevista(t, "compra", v, p)))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
