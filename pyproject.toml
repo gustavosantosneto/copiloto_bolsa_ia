@@ -4,14 +4,16 @@ version = "0.1.0"
 description = "Copiloto de trading integrado ao MetaTrader 5"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi",
     "MetaTrader5",
     "pydantic>=2",
     "python-dotenv",
     "typer",
+    "uvicorn",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["httpx", "pytest"]
 
 [project.scripts]
 copiloto = "copiloto.cli:app"

@@ -30,7 +30,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] Capacidade operacional por ativo da watchlist — 2026-10-19 (demo simulada R$5k × 200x)
 - [ ] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md))
 - [x] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` + `simbolos`, `coletar` — 2026-10-19
-- [ ] API leitura: mesmos recursos da CLI
+- [x] API leitura: mesmos recursos da CLI (FastAPI, `copiloto api`, GET only) — 2026-10-19
 - [ ] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático
 
 ## Backlog V1.1 (corretoras/custos — pesquisa 2026-10)

@@ -109,3 +109,14 @@ def capacidade():
     except ErroMT5 as e:
         typer.echo(f"ERRO MT5: {e}", err=True)
         raise typer.Exit(1)
+
+
+@app.command()
+def api():
+    """Sobe a API somente leitura (host/porta em [api])."""
+    import uvicorn
+
+    from copiloto.api import criar_app
+
+    cfg = _cfg()
+    uvicorn.run(criar_app(), host=cfg.api.host, port=cfg.api.porta)
