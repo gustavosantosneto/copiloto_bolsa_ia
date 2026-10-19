@@ -16,7 +16,7 @@ def _cfg(**risco):
 
 SIMB = [{"ticker": "RADL3", "existe": True, "ask": 20.0, "ultimo": 20.0},
         {"ticker": "XXXX3", "existe": False}]
-CONTA_DEMO = {"patrimonio": 1_000_000.0, "margem": 0.0, "margem_livre": 1_000_000.0}
+CONTA_DEMO = {"saldo": 1_000_000.0, "patrimonio": 1_000_000.0, "margem": 0.0, "margem_livre": 1_000_000.0}
 SEM_MT5 = lambda t, v, p: None  # noqa: E731 — simulado não deve chamar
 
 
@@ -25,30 +25,39 @@ def _radl(r):
 
 
 def test_simulado_usa_capital_e_alavancagem():
-    r = calcular(_cfg(exposicao_max_ativo_pct=1000, exposicao_max_total_pct=1000, margem_usada_max_pct=100),
-                 CONTA_DEMO, [], SIMB, SEM_MT5)
+    r = calcular(_cfg(margem_usada_max_pct=100), CONTA_DEMO, [], SIMB, SEM_MT5)
     a = _radl(r)
-    assert r["modo"] == "simulado" and r["conta"]["patrimonio"] == 5000.0
+    assert r["modo"] == "simulado" and r["conta"]["saldo"] == 5000.0
     assert (a["valor_lote"], a["margem_lote"]) == (2000.0, 10.0)
-    assert a["lotes_por_limite"]["margem_livre"] == 500
-    assert a["lotes_por_limite"]["exposicao_ativo"] == 25  # 10x 5000 / 2000
-    assert (a["lotes_operaveis"], a["restricao"]) == (25, "exposicao_ativo")
+    assert (a["lotes_operaveis"], a["restricao"]) == (500, "margem_livre")
+    assert a["folga_perda_ativo"] == 500.0  # 10% de 5000, posição zerada
 
 
-def test_posicao_atual_consome_limites():
-    pos = [{"ticker": "RADL3", "volume": 1000.0, "preco_atual": 20.0, "lucro": -100.0}]
-    r = calcular(_cfg(exposicao_max_ativo_pct=1000, exposicao_max_total_pct=1000, margem_usada_max_pct=100),
-                 CONTA_DEMO, pos, SIMB, SEM_MT5)
+def test_perda_aberta_consome_folga():
+    pos = [{"ticker": "RADL3", "volume": 1000.0, "preco_atual": 20.0, "lucro": -50.0}]
+    r = calcular(_cfg(), CONTA_DEMO, pos, SIMB, SEM_MT5)
     a = _radl(r)
-    assert r["conta"] == {"patrimonio": 4900.0, "margem_usada": 100.0, "margem_livre": 4800.0, "valor_posicoes": 20000.0}
-    assert a["qtd_carteira"] == 1000.0
-    assert a["lotes_por_limite"]["exposicao_ativo"] == 14  # (49000 - 20000) / 2000
+    assert r["conta"]["patrimonio"] == 4950.0 and r["conta"]["margem_usada"] == 100.0
+    assert (a["qtd_carteira"], a["lucro_aberto"], a["folga_perda_ativo"]) == (1000.0, -50.0, 450.0)
+    assert r["conta"]["folga_perda_total"] == 950.0
+    assert a["lotes_operaveis"] > 0
+
+
+def test_lucro_aumenta_folga():
+    pos = [{"ticker": "RADL3", "volume": 100.0, "preco_atual": 20.0, "lucro": 50.0}]
+    assert _radl(calcular(_cfg(), CONTA_DEMO, pos, SIMB, SEM_MT5))["folga_perda_ativo"] == 550.0
+
+
+def test_limite_de_perda_atingido_bloqueia():
+    pos = [{"ticker": "RADL3", "volume": 1000.0, "preco_atual": 20.0, "lucro": -500.0}]
+    a = _radl(calcular(_cfg(), CONTA_DEMO, pos, SIMB, SEM_MT5))
+    assert (a["lotes_operaveis"], a["restricao"]) == (0, "perda_aberta_ativo")
 
 
 def test_sem_cotacao_zera():
     r = calcular(_cfg(), CONTA_DEMO, [], SIMB, SEM_MT5)
-    assert r["ativos"][1] == {"ticker": "XXXX3", "preco": None, "qtd_carteira": 0, "lotes_operaveis": 0,
-                              "restricao": "sem_cotacao"}
+    x = r["ativos"][1]
+    assert (x["lotes_operaveis"], x["restricao"]) == (0, "sem_cotacao")
 
 
 def test_fora_universo_ignorada_no_simulado():
@@ -59,10 +68,10 @@ def test_fora_universo_ignorada_no_simulado():
 
 @pytest.mark.parametrize("capital", [0.0, 5000.0])
 def test_real_ou_sem_capital_usa_conta_e_mt5(capital):
-    cfg = _cfg(exposicao_max_ativo_pct=1000, exposicao_max_total_pct=1000, margem_usada_max_pct=100)
+    cfg = _cfg()
     cfg.simulacao.capital_simulado = capital
     if capital:
         cfg.geral.ambiente = "real"
-    conta = {"patrimonio": 5000.0, "margem": 0.0, "margem_livre": 5000.0}
+    conta = {"saldo": 5000.0, "patrimonio": 5000.0, "margem": 0.0, "margem_livre": 5000.0}
     r = calcular(cfg, conta, [], SIMB, lambda t, v, p: 20.0)
     assert r["modo"] == "conta" and _radl(r)["margem_lote"] == 20.0

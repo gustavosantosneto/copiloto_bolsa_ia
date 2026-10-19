@@ -49,8 +49,8 @@ max_entradas_preco_medio = 10       # [PENDENTE]
 [risco]                            # [pref] usuário 2026-10-19
 perda_max_dia = 20                 # % do saldo no início do dia
 perda_max_operacao = 200           # R$
-exposicao_max_ativo_pct = 10.0     # % do patrimônio; base = valor posição
-exposicao_max_total_pct = 20.0     # % do patrimônio; base = valor posição
+perda_aberta_max_ativo_pct = 10.0  # % do saldo; P&L aberto do ativo não pode passar de −isso (5k → −R$500)
+perda_aberta_max_total_pct = 20.0  # % do saldo; soma do P&L aberto de todas as posições
 margem_usada_max_pct = 20.0        # % do patrimônio; base = margem usada (limite separado)
 nivel_margem_min_pct = 2000      # alerta abaixo disso
 max_posicoes_abertas = 10

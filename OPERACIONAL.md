@@ -31,6 +31,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Resultado bruto e líquido; custo médio e ganho médio por operação e por dia.
 - Drawdown, risco agregado, cenários de perda.
 - Limites de risco configuráveis (operação, dia, ativo).
+- Perda aberta por ativo/total: limite = % do saldo; folga = limite + P&L aberto (entra em 0; −50 → folga 450). Folga ≤ 0 → 0 lotes novos.
 - Evitar concentração; considerar correlação **direta e inversa** entre posições.
 - Simular entrada adicional → impacto em margem e risco.
 

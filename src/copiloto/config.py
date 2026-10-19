@@ -104,8 +104,8 @@ class Operacao(Secao):
 class Risco(Secao):
     perda_max_dia: float = Pct
     perda_max_operacao: float = Field(gt=0)
-    exposicao_max_ativo_pct: float = Field(gt=0)
-    exposicao_max_total_pct: float = Field(gt=0)
+    perda_aberta_max_ativo_pct: float = Pct
+    perda_aberta_max_total_pct: float = Pct
     margem_usada_max_pct: float = Pct
     nivel_margem_min_pct: float = Field(gt=0)
     max_posicoes_abertas: int = Field(gt=0)
@@ -113,8 +113,8 @@ class Risco(Secao):
 
     @model_validator(mode="after")
     def _ativo_ate_total(self):
-        if self.exposicao_max_ativo_pct > self.exposicao_max_total_pct:
-            raise ValueError("exposicao_max_ativo_pct > exposicao_max_total_pct")
+        if self.perda_aberta_max_ativo_pct > self.perda_aberta_max_total_pct:
+            raise ValueError("perda_aberta_max_ativo_pct > perda_aberta_max_total_pct")
         return self
 
 
