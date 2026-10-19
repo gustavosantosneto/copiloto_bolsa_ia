@@ -4,8 +4,10 @@ import json
 
 import typer
 
+from copiloto.coletor import Coletor
 from copiloto.config import Config, ErroConfig, carregar_config
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
+from copiloto.registro import Registro
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -76,3 +78,21 @@ def historico(dias: int = typer.Option(None, help="padrão: coletor.historico_de
 def simbolos(tickers: list[str] = typer.Argument(None, help="padrão: watchlist")):
     """Info e última cotação dos símbolos."""
     _ler_mt5("simbolos", tickers=[t.upper() for t in tickers] if tickers else None)
+
+
+@app.command()
+def coletar(ciclos: int = typer.Option(None, help="padrão: infinito (Ctrl+C para parar)")):
+    """Poll do MT5; grava deals no CSV na hora e imprime 1 evento JSON por linha."""
+    try:
+        with ServicoMT5(_cfg()) as s:
+            reg = Registro(s.cfg, s.conta()["login"])
+            n = reg.importar(s.deals())
+            typer.echo(f"{reg.caminho.name}: {n} deals importados do histórico MT5", err=True)
+            for e in Coletor(s, s.cfg).rodar(ciclos):
+                reg.gravar_evento(e)
+                typer.echo(json.dumps(e, ensure_ascii=False))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
+    except KeyboardInterrupt:
+        pass

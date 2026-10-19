@@ -132,3 +132,8 @@ class ServicoMT5:
                 "margem_inicial": s.margin_initial, "modo_calculo": s.trade_calc_mode,
             })
         return saida
+
+    def margem_prevista(self, ticker: str, tipo: str, volume: float, preco: float) -> float | None:
+        """Margem que o MT5 calcula (order_calc_margin) — só cálculo, não envia nada."""
+        acao = mt5.ORDER_TYPE_BUY if tipo == "compra" else mt5.ORDER_TYPE_SELL
+        return mt5.order_calc_margin(acao, ticker, volume, preco)

@@ -4,7 +4,7 @@
 
 ## Arquitetura V1
 ```
-MT5 terminal ──IPC──> coletor Python (poll 1s) ──> SQLite
+MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quando crescer)
                                                     ├─> API (somente leitura) ──> Web (painel)
                                                     └─> CLI (humano e Claude rodam comandos)
 ```
@@ -24,8 +24,9 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> SQLite
 ## Backlog V1
 - [x] Estrutura Python + `config/parametros.toml` + `.env` (login MT5) — 2026-10-19
 - [x] Serviço MT5: conectar, conta, posições, ordens, deals, símbolos — 2026-10-19
-- [ ] Coletor: poll 1s, diff de tickets → evento de deal
-- [ ] Registro: deal + snapshot antes/depois → SQLite (+ export CSV `dados/historico_trades.csv`)
+- [x] Coletor: poll 1s, diff de tickets → evento de deal — 2026-10-19 (validado ao vivo: RADL3 TP detectado em 122 ms)
+- [x] Registro: deal + snapshot antes/depois → CSV `dados/historico_trades.csv` (append imediato + import do histórico MT5) — 2026-10-19
+- [ ] SQLite: só quando o histórico crescer (decidido 2026-10-19); CSV por enquanto
 - [ ] Capacidade operacional por ativo da watchlist
 - [ ] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md))
 - [ ] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` (feitos: todos menos `capacidade`; extra `simbolos`)
@@ -46,7 +47,7 @@ Similaridade, indicadores, backtest, chat, execução de ordens, EA MQL5, multi-
 | # | Decisão | Status |
 |---|---|---|
 | 1 | Stack web | **React** (painel crescerá) — decidido 2026-10-19 |
-| 2 | Banco | **SQLite** local — decidido 2026-10-19 |
+| 2 | Banco | **SQLite** local — decidido 2026-10-19; adiado até histórico crescer, CSV na V1 |
 | 3 | Formato config | **TOML** (`tomllib`) — decidido 2026-10-19 |
 | 4 | Limites de risco | Decidido 2026-10-19: `perda_max_dia` % do saldo início do dia; exposição (valor posição) e margem usada = limites separados |
 | 5 | Corretora alvo real | pendente |

@@ -18,7 +18,7 @@ Constituição = lei máxima; demais docs subordinados. Conflito entre pedido e 
 | Fases/backlog | `ROADMAP.md` | tabela + checklist |
 | Fatos/histórico | `CONTEXTO.md` | tabela `item \| valor \| data \| fonte \| status` |
 | Parâmetros | `config/parametros.toml` | chave = default + `# [status]` |
-| Dados medidos | `dados/*.csv` | 1 linha por registro, separador `;`, cabeçalho snake_case |
+| Dados medidos | `dados/*.csv` | 1 linha por registro, separador `;`, decimal `.`, cabeçalho snake_case |
 
 ## Formato dos docs (obrigatório)
 - Estilo telegráfico: tópicos, tabelas, setas. Sem prosa, sem repetir o que outro doc já diz → linkar.

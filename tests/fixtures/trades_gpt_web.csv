@@ -1,0 +1,8 @@
+data_hora;ticker;direcao;qtd;preco_entrada;preco_saida;ticket;resultado_bruto;custos;resultado_liquido;saldo_antes;saldo_depois;patrimonio_antes;patrimonio_depois;margem_antes;margem_depois;margem_livre_antes;margem_livre_depois;margem_prevista_mt5;mae;mfe;conta;fonte;status;obs
+;BBDC3;venda;;;;;8;;;;;;;;;;;;;;;gpt_web;fixture;
+;VIVT3;compra;;;;;14;;;;;;;;;;;;;;;gpt_web;fixture;
+;ABEV3;compra;;;;;12;;;;;;;;;;;;;;;gpt_web;fixture;
+;CXSE3;compra;;;;;27;;;;;;;;;;;;;;;gpt_web;fixture;
+;SBSP3;compra;;;;;;;;;;;;;;;;;;;;gpt_web;fixture;TP ~49 (referência; não sinal)
+;RADL3;;;;;;;;;;;;;;;;;;;;;gpt_web;fixture;drawdown intradiário >400
+2026-09-24;BBAS3;;;;;;-623;;;;;;;;;;;;;;;gpt_web;fixture;fechamento antes do TP
