@@ -45,7 +45,7 @@
 | Regra | Valores reais só medidos na corretora escolhida; toda margem com origem e validade | — | — | regra |
 
 ## Trades históricos (fixtures)
-→ [tests/fixtures/trades_gpt_web.csv](tests/fixtures/trades_gpt_web.csv) (fixtures gpt_web). Deals reais → [dados/historico_trades.csv](dados/historico_trades.csv). Casos de risco: RADL3 drawdown intradiário >R$400; BBAS3 fechado manual ~−R$623 (2026-09-24).
+→ [tests/fixtures/trades_gpt_web.csv](../tests/fixtures/trades_gpt_web.csv) (fixtures gpt_web). Deals reais → [dados/historico_trades.csv](../dados/historico_trades.csv). Casos de risco: RADL3 drawdown intradiário >R$400; BBAS3 fechado manual ~−R$623 (2026-09-24).
 
 ## Anomalias da XP Demo (testes de robustez)
 | Caso | Dado | Data | Lição |

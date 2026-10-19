@@ -1,6 +1,6 @@
 # Operacional — copiloto_bolsa_ia
 
-> Regras de funcionamento. Subordinado à [CONSTITUICAO.md](CONSTITUICAO.md). Parâmetros: [config/parametros.toml](config/parametros.toml). Fases: [ROADMAP.md](ROADMAP.md).
+> Regras de funcionamento. Subordinado à [CONSTITUICAO.md](CONSTITUICAO.md). Parâmetros: [config/parametros.toml](../config/parametros.toml). Fases: [ROADMAP.md](ROADMAP.md).
 
 ## 1. Integração MT5
 - SDK oficial `MetaTrader5` (Python). Toda comunicação centralizada em um serviço.
@@ -22,7 +22,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Snapshot conta **antes** e **depois** do deal: saldo, patrimônio, margem, margem livre, nível de margem.
 - Deal: ticker, direção, qtd, preço, ticket, horário, custos cobrados.
 - Derivados: `margem_por_lote = Δmargem / lotes`, `alavancagem_medida = valor_posicao / Δmargem`, custo real.
-- Destino: [dados/historico_trades.csv](dados/historico_trades.csv) (cada deal) → consolida [dados/base_operacional.csv](dados/base_operacional.csv) (por ativo).
+- Destino: [dados/historico_trades.csv](../dados/historico_trades.csv) (cada deal) → consolida [dados/base_operacional.csv](../dados/base_operacional.csv) (por ativo).
 - Comparar sempre com o previsto pelo MT5 (`order_calc_margin`). Divergência → alerta.
 
 ## 4. Gestão patrimonial e risco
@@ -31,6 +31,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Resultado bruto e líquido; custo médio e ganho médio por operação e por dia.
 - Drawdown, risco agregado, cenários de perda.
 - Limites de risco configuráveis (operação, dia, ativo).
+- Máx. lotes por ativo (`max_lotes_ativo`), inclui os já em carteira.
 - Perda aberta por ativo/total: limite = % do saldo; folga = limite + P&L aberto (entra em 0; −50 → folga 450). Folga ≤ 0 → 0 lotes novos.
 - Evitar concentração; considerar correlação **direta e inversa** entre posições.
 - Simular entrada adicional → impacto em margem e risco.
@@ -92,7 +93,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 ## 11. Arquivos de conhecimento
 | Arquivo | Conteúdo |
 |---|---|
-| [dados/base_operacional.csv](dados/base_operacional.csv) | Margem, alavancagem, taxas medidas por ativo |
-| [dados/historico_trades.csv](dados/historico_trades.csv) | Todo deal + snapshot antes/depois |
+| [dados/base_operacional.csv](../dados/base_operacional.csv) | Margem, alavancagem, taxas medidas por ativo |
+| [dados/historico_trades.csv](../dados/historico_trades.csv) | Todo deal + snapshot antes/depois |
 | [CONTEXTO.md](CONTEXTO.md) | Fatos históricos, preferências, anomalias |
-| [config/parametros.toml](config/parametros.toml) | Parâmetros e defaults do sistema |
+| [config/parametros.toml](../config/parametros.toml) | Parâmetros e defaults do sistema |

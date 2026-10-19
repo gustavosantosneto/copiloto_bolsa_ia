@@ -3,33 +3,33 @@
 ## Norte
 Constituição = lei máxima; demais docs subordinados. Conflito entre pedido e docs → apontar e perguntar.
 
-@CONSTITUICAO.md
-@OPERACIONAL.md
-@PAINEL.md
-@ROADMAP.md
-@CONTEXTO.md
+@docs/CONSTITUICAO.md
+@docs/OPERACIONAL.md
+@docs/PAINEL.md
+@docs/ROADMAP.md
+@docs/CONTEXTO.md
 
 ## Mapa de conhecimento
 | Tipo | Onde | Formato |
 |---|---|---|
-| Leis | `CONSTITUICAO.md` | mandamentos curtos |
-| Regras | `OPERACIONAL.md` | tópicos por tema |
-| Tela | `PAINEL.md` | tabela bloco × fase |
-| Fases/backlog | `ROADMAP.md` | tabela + checklist |
-| Fatos/histórico | `CONTEXTO.md` | tabela `item \| valor \| data \| fonte \| status` |
+| Leis | `docs/CONSTITUICAO.md` | mandamentos curtos |
+| Regras | `docs/OPERACIONAL.md` | tópicos por tema |
+| Tela | `docs/PAINEL.md` | tabela bloco × fase |
+| Fases/backlog | `docs/ROADMAP.md` | tabela + checklist |
+| Fatos/histórico | `docs/CONTEXTO.md` | tabela `item \| valor \| data \| fonte \| status` |
 | Parâmetros | `config/parametros.toml` | chave = default + `# [status]` |
 | Dados medidos | `dados/*.csv` | 1 linha por registro, separador `;`, decimal `.`, cabeçalho snake_case |
 
 ## Formato dos docs (obrigatório)
 - Estilo telegráfico: tópicos, tabelas, setas. Sem prosa, sem repetir o que outro doc já diz → linkar.
-- Regra em `.md`; valor em `config/`; dado medido em `dados/`. Não misturar.
+- Regra em `docs/*.md`; valor em `config/`; dado medido em `dados/`. Não misturar.
 - Todo fato/valor histórico: data (`AAAA-MM-DD`), fonte, status (`observado` · `preferencia` · `hipotese` · `pendente` · `fixture`).
 - Dado histórico de mercado = fixture de teste, nunca sinal/ordem.
 - Novo conhecimento → doc existente certo; doc novo só se não couber, e perguntar antes.
 
 ## Comportamento
 1. **Pense antes.** Declarar suposições; várias interpretações → apresentar; dúvida → perguntar. Nunca assumir regra de negócio/trading.
-2. **Simples.** Mínimo de código; nada especulativo; sem abstração de uso único; biblioteca madura > própria. Respeitar fase atual do `ROADMAP.md`.
+2. **Simples.** Mínimo de código; nada especulativo; sem abstração de uso único; biblioteca madura > própria. Respeitar fase atual do `docs/ROADMAP.md`.
 3. **Cirúrgico.** Tocar só o pedido; seguir estilo existente; código morto alheio → mencionar, não apagar.
 4. **Orientado a verificação.** Critério verificável por tarefa; plano curto `etapa → verificar`.
 

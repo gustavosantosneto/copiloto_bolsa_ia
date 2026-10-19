@@ -54,6 +54,7 @@ perda_aberta_max_total_pct = 20.0  # % do saldo; soma do P&L aberto de todas as 
 margem_usada_max_pct = 20.0        # % do patrimônio; base = margem usada (limite separado)
 nivel_margem_min_pct = 2000      # alerta abaixo disso
 max_posicoes_abertas = 10
+max_lotes_ativo = 15               # [pref] 2026-10-19 lotes padrão por ativo (inclui os já em carteira)
 alerta_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
 
 [simulacao]                        # só ambiente=demo; em real ignorado (usa conta + MT5)

@@ -1,6 +1,6 @@
 """Capacidade operacional: lotes padrão operáveis por ativo (só cálculo, nada é enviado).
 
-Lotes = menor entre margem livre, teto de margem usada e máx. posições. `restricao` diz qual travou.
+Lotes = menor entre margem livre, teto de margem usada, máx. lotes/ativo e máx. posições. `restricao` diz qual travou.
 Perda aberta: limite (% do saldo) − perda atual = folga p/ cair. Folga ≤ 0 → 0 lotes (ativo ou total).
 Demo + simulacao.capital_simulado > 0 → conta simulada (saldo = capital; margem = valor/alavancagem).
 """
@@ -57,7 +57,8 @@ def calcular(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dict
         if not preco or not ml:
             ativos.append(linha | {"lotes_operaveis": 0, "restricao": "sem_cotacao" if not preco else "sem_margem"})
             continue
-        limites = {"margem_livre": _lotes(margem_livre, ml), "margem_usada_max": _lotes(teto_margem, ml)}
+        limites = {"margem_livre": _lotes(margem_livre, ml), "margem_usada_max": _lotes(teto_margem, ml),
+                   "max_lotes_ativo": max(0, r.max_lotes_ativo - math.ceil(linha["qtd_carteira"] / lote))}
         if lotado and t not in lucro:
             limites["max_posicoes"] = 0
         if folga_ativo <= 0:

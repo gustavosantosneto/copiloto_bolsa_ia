@@ -29,7 +29,8 @@ def test_simulado_usa_capital_e_alavancagem():
     a = _radl(r)
     assert r["modo"] == "simulado" and r["conta"]["saldo"] == 5000.0
     assert (a["valor_lote"], a["margem_lote"]) == (2000.0, 10.0)
-    assert (a["lotes_operaveis"], a["restricao"]) == (500, "margem_livre")
+    assert a["lotes_por_limite"]["margem_livre"] == 500
+    assert (a["lotes_operaveis"], a["restricao"]) == (15, "max_lotes_ativo")
     assert a["folga_perda_ativo"] == 500.0  # 10% de 5000, posição zerada
 
 
@@ -40,7 +41,7 @@ def test_perda_aberta_consome_folga():
     assert r["conta"]["patrimonio"] == 4950.0 and r["conta"]["margem_usada"] == 100.0
     assert (a["qtd_carteira"], a["lucro_aberto"], a["folga_perda_ativo"]) == (1000.0, -50.0, 450.0)
     assert r["conta"]["folga_perda_total"] == 950.0
-    assert a["lotes_operaveis"] > 0
+    assert a["lotes_operaveis"] == 5  # 15 − 10 lotes em carteira
 
 
 def test_lucro_aumenta_folga():

@@ -109,6 +109,7 @@ class Risco(Secao):
     margem_usada_max_pct: float = Pct
     nivel_margem_min_pct: float = Field(gt=0)
     max_posicoes_abertas: int = Field(gt=0)
+    max_lotes_ativo: int = Field(gt=0)
     alerta_correlacao_posicoes: float = Field(gt=0, le=1)
 
     @model_validator(mode="after")
