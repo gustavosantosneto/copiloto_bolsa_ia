@@ -14,3 +14,7 @@ logs/
 .pytest_cache/
 node_modules/
 web/dist/
+
+# dados da conta: fonte real = v1 (D:\Github\mt5_copiloto_ia_v1); fora do git p/ não conflitar v1 × beta
+dados/*_historico_trades.csv
+dados/*_base_operacional.csv

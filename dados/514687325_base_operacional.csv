@@ -1,5 +1,0 @@
-ticker;n_medicoes;margem_por_lote;alavancagem_medida;alavancagem_min;alavancagem_max;divergencia_mt5_max_pct;primeira_medicao;ultima_medicao;ambiente;status
-B3SA3;1;11.74;198.8;198.8;198.8;0.61;2026-10-20T12:32:46.336;2026-10-20T12:32:46.336;demo;pendente
-BBDC3;2;9.03;199.4;198.8;200.1;0.55;2026-10-19T16:59:50.640;2026-10-20T12:30:45.798;demo;pendente
-ITUB4;2;24.24;199.8;199.6;200.0;0.22;2026-10-19T16:59:51.394;2026-10-20T12:31:23.715;demo;pendente
-RADL3;1;10.67;199.5;199.5;199.5;0.25;2026-10-19T16:39:09.048;2026-10-19T16:39:09.048;demo;pendente

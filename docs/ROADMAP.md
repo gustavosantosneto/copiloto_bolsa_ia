@@ -52,7 +52,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [ ] Painel: bloco de corretoras (hoje só CLI/API)
 
 ## Versões
-- `v1` = em uso (`D:\Github\mt5_copiloto_ia_v1`) · `beta` = desenvolvimento, testes na demo · `main` = após validar.
+- `v1` = em uso (`D:\Github\mt5_copiloto_ia_v1`) · `beta` = desenvolvimento, testes na demo · `main` = após validar. Dados da conta (`dados/{conta}_*.csv`) fora do git; fonte real = v1.
 
 ## Fora da V1
 Similaridade, indicadores, backtest, chat, execução de ordens, EA MQL5, multi-conta.

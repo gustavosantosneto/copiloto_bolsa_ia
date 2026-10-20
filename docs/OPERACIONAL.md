@@ -23,7 +23,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Snapshot conta **antes** e **depois** do deal: saldo, patrimônio, margem, margem livre, nível de margem.
 - Deal: ticker, direção, qtd, preço, ticket, horário, custos cobrados.
 - Derivados: `margem_por_lote = Δmargem / lotes`, `alavancagem_medida = valor_posicao / Δmargem`, custo real.
-- Destino: `dados/{conta}_historico_trades.csv` (cada deal) → consolida `dados/{conta}_base_operacional.csv` (por ativo). 1 arquivo por conta MT5.
+- Destino: `dados/{conta}_historico_trades.csv` (cada deal) → consolida `dados/{conta}_base_operacional.csv` (por ativo). 1 arquivo por conta MT5. Fora do git; fonte real = pasta v1.
 - Medição válida: deal do coletor sozinho no ciclo, Δmargem ≠ 0. `n_medicoes` < `min_medicoes_margem_validada` → `pendente`.
 - Comparar sempre com o previsto pelo MT5 (`order_calc_margin`). Divergência → atenção.
 
