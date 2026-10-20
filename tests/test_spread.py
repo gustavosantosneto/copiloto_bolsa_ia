@@ -15,6 +15,7 @@ def cfg(tmp_path):
     c = carregar_config()
     c.mercado.pasta = str(tmp_path)
     c.spread.min_amostras = 3
+    c.spread.ticks_acima_media = 2  # teste independe do toml
     spread._cache.clear()
     return c
 

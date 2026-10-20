@@ -11,7 +11,7 @@
 | 3 | Capacidade operacional | Lotes padrão operáveis por ativo (saldo, margem livre, margem medida, qtd em carteira) · spread atual e z (V1.1) | V1 |
 | 4 | Histórico | Deals do dia/período + snapshot antes/depois | V1 |
 | 5 | Base operacional | Margem medida × alavancagem declarada, custos medidos, nº medições | V1.1 |
-| 6 | Resultado | Bruto/líquido, custo médio, ganho médio por operação e dia, drawdown | V1.1 |
+| 6 | Resultado | Bruto/líquido, custo médio, ganho médio por operação e dia, drawdown · modo Diagnóstico: MAE/MFE por operação, por motivo de saída (beta) | V1.1 |
 | 7 | Atenções | Guardas: símbolo sem cotação, margem zero com posição (V1) · limites de risco, divergência de margem, spread (V1.1) | V1 · V1.1 |
 | 8 | Similaridade | Matriz direta/inversa, lag, retornos normalizados comparados | V2 |
 | 9 | Simulação | Nova entrada → impacto em margem, exposição, preço médio, TP | V2 |

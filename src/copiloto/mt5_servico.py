@@ -1,6 +1,7 @@
 """Serviço MT5 — único ponto de contato com o SDK. Somente leitura (V1)."""
 
 import time
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 
 import MetaTrader5 as mt5
@@ -15,6 +16,7 @@ TIPO_ORDEM = {
 }
 TIPO_DEAL = {0: "compra", 1: "venda", 2: "saldo", 3: "credito", 4: "encargo", 5: "correcao", 6: "bonus", 7: "comissao"}
 ENTRADA_DEAL = {0: "entrada", 1: "saida", 2: "inversao", 3: "saida_por"}
+MOTIVO_DEAL = {0: "manual", 1: "mobile", 2: "web", 3: "robo", 4: "sl", 5: "tp", 6: "stop_out"}
 
 
 class ErroMT5(Exception):
@@ -114,6 +116,7 @@ class ServicoMT5:
             "tipo": TIPO_DEAL.get(d.type, str(d.type)), "entrada": ENTRADA_DEAL.get(d.entry, str(d.entry)),
             "volume": d.volume, "preco": d.price, "comissao": d.commission, "taxa": d.fee,
             "swap": d.swap, "lucro": d.profit, "horario": _hora(d.time_msc / 1000), "comentario": d.comment,
+            "motivo": MOTIVO_DEAL.get(d.reason, str(d.reason)),
         } for d in r]
 
     def simbolos(self, tickers: list[str] | None = None) -> list[dict]:
@@ -152,6 +155,17 @@ class ServicoMT5:
             } for c in r]
             ini = fim
         return list({c["horario"]: c for c in saida}.values())  # bordas dos blocos podem repetir
+
+    def negocios(self, ticker: str, desde: datetime, ate: datetime) -> Iterator[list[tuple]]:
+        """Ticks de negócio (COPY_TICKS_TRADE) em blocos: (time_msc, bid, ask, ultimo, volume, flags). Horário do servidor."""
+        ini, ate = desde.replace(tzinfo=UTC), ate.replace(tzinfo=UTC)  # mesmo ajuste de fuso de candles()
+        while ini < ate:
+            fim = min(ini + timedelta(days=self.cfg.mercado.bloco_dias), ate)
+            r = mt5.copy_ticks_range(ticker, ini, fim, mt5.COPY_TICKS_TRADE)
+            if r is None:
+                raise _erro(f"copy_ticks_range {ticker}")
+            yield r[["time_msc", "bid", "ask", "last", "volume_real", "flags"]].tolist()
+            ini = fim
 
     def margem_prevista(self, ticker: str, tipo: str, volume: float, preco: float) -> float | None:
         """Margem que o MT5 calcula (order_calc_margin) — só cálculo, não envia nada."""

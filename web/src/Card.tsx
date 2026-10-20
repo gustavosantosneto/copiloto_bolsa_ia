@@ -11,7 +11,7 @@ function lerRecolhido(id: string): boolean {
   }
 }
 
-export function Card({ id, titulo, children }: { id: string; titulo: ReactNode; children: ReactNode }) {
+export function Card({ id, titulo, acoes, children }: { id: string; titulo: ReactNode; acoes?: ReactNode; children: ReactNode }) {
   const [recolhido, setRecolhido] = useState(() => lerRecolhido(id));
   const alternar = () => {
     setRecolhido(!recolhido);
@@ -25,6 +25,7 @@ export function Card({ id, titulo, children }: { id: string; titulo: ReactNode; 
     <section className={`bloco${recolhido ? " recolhido" : ""}`}>
       <div className="cabecalho">
         <h2>{titulo}</h2>
+        {!recolhido && acoes}
         <button className="recolher" onClick={alternar} title={recolhido ? "expandir" : "recolher"}>
           {recolhido ? "▸" : "▾"}
         </button>

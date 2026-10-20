@@ -5,7 +5,7 @@
 ## 1. Integração MT5
 - SDK oficial `MetaTrader5` (Python). Toda comunicação centralizada em um serviço.
 - Lê: candles, ticks, cotações, posições, ordens, deals, conta.
-- Candles M1 da watchlist p/ estudo → `data/mercado/` (fora do git): 1ª carga 90 dias, depois incremental (`copiloto mercado`).
+- Candles M1 + negócios tick a tick (preço, volume, lado agressor, bid/ask no instante) da watchlist p/ estudo → `data/mercado/` (fora do git; ticks em SQLite): 1ª carga 90 dias, depois incremental (`copiloto mercado`).
 - Universo: ações BR até ~R$50; watchlist em [CONTEXTO.md](CONTEXTO.md).
 - Timeframe: M12 principal, M6 auxiliar; outros configuráveis.
 - Ambiente demo/real alternável; demo padrão.
@@ -67,6 +67,7 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Estudar: gap fill, mean reversion, dojis, abertura.
 - Backtest/simulação com custos e slippage.
 - Métricas: MAE, MFE, profit factor, drawdown, expectativa.
+- Diagnóstico (`copiloto diagnostico`): MAE/MFE de cada operação encerrada = pior/melhor P&L aberto tick a tick (preço médio e volume do instante), + motivo da saída (TP/SL/manual, do MT5). Preço = último negócio, sem custos.
 - Catalogar operações, padrões, hipóteses, resultados.
 
 ## 8. Agente
@@ -100,6 +101,6 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 | `dados/{conta}_base_operacional.csv` | Margem, alavancagem medidas por ativo (gerado) |
 | `dados/{conta}_historico_trades.csv` | Todo deal + snapshot antes/depois |
 | [dados/corretoras.csv](../dados/corretoras.csv) · [dados/margens_corretora.csv](../dados/margens_corretora.csv) | Cadastro público de corretoras / margem ativo × corretora (teto, com validade) |
-| `data/mercado/M1_{ticker}.csv` | Candles + spread p/ estudo (fora do git; nunca sinal) |
+| `data/mercado/M1_{ticker}.csv` · `data/mercado/ticks.sqlite` | Candles + spread; negócios tick a tick p/ estudo (fora do git; nunca sinal) |
 | [CONTEXTO.md](CONTEXTO.md) | Fatos históricos, preferências, anomalias |
 | [config/parametros.toml](../config/parametros.toml) | Parâmetros e defaults do sistema |

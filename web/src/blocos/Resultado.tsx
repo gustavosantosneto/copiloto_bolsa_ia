@@ -1,12 +1,27 @@
-// Bloco 6 — Resultado realizado: bruto/líquido, custos, médias por operação e dia, drawdown
+// Bloco 6 — Resultado realizado (bruto/líquido, custos, médias, drawdown) · modo Diagnóstico (MAE/MFE por operação)
+import { useState } from "react";
 import { Card } from "../Card";
 import type { Resultado as TRes } from "../api";
 import { brl, sinal } from "../formato";
+import { Diagnostico } from "./Diagnostico";
 
 export function Resultado({ res }: { res?: TRes }) {
   const t = res?.total;
+  const [modo, setModo] = useState<"resultado" | "diagnostico">("resultado");
+  const abas = (
+    <div className="abas">
+      <button className={modo === "resultado" ? "ativa" : ""} onClick={() => setModo("resultado")}>Resultado</button>
+      <button className={modo === "diagnostico" ? "ativa" : ""} onClick={() => setModo("diagnostico")}>Diagnóstico</button>
+    </div>
+  );
+  if (modo === "diagnostico")
+    return (
+      <Card id="resultado" acoes={abas} titulo={<>Diagnóstico <span className="sub">MAE/MFE por operação</span></>}>
+        <Diagnostico />
+      </Card>
+    );
   return (
-    <Card id="resultado" titulo={<>Resultado realizado <span className="sub">{t ? `${t.dias} dias · custos B3 estimados quando MT5 não lança` : ""}</span></>}>
+    <Card id="resultado" acoes={abas} titulo={<>Resultado realizado <span className="sub">{t ? `${t.dias} dias · custos B3 estimados quando MT5 não lança` : ""}</span></>}>
       {t && (
         <div className="grade">
           <div className="item"><span className="rotulo">Líquido</span><span className={`valor ${sinal(t.liquido)}`}>{brl(t.liquido)}</span></div>

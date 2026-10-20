@@ -56,6 +56,10 @@ main { flex: 1 1 auto; display: flex; gap: var(--esp); min-width: 0; min-height:
 .recolher { flex: 0 0 auto; background: none; border: 1px solid var(--borda); border-radius: 3px; color: var(--suave);
   cursor: pointer; width: 18px; height: 18px; padding: 0; line-height: 1; font-size: 11px; }
 .recolher:hover { color: var(--texto); }
+.abas { display: flex; gap: var(--esp-p); flex: 0 0 auto; }
+.abas button { background: none; border: 1px solid var(--borda); border-radius: 3px; color: var(--suave); cursor: pointer;
+  font-size: 10px; padding: 1px var(--esp); }
+.abas button.ativa { color: var(--texto); border-color: var(--suave); }
 .sub { color: var(--suave); font-size: 11px; font-weight: normal; margin: var(--esp-p) 0; }
 
 .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: var(--esp); margin-bottom: var(--esp); }

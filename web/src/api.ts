@@ -58,6 +58,19 @@ export type Spread = {
   acima_media_ticks: number | null;
   n_amostras: number; status: string;
 };
+export type OpDiagnostico = {
+  ticker: string; lado: string; abertura: string; fechamento: string; duracao_min: number; resultado_bruto: number;
+  motivo_saida: string | null; status: string; qtd_max?: number; mae?: number; mfe?: number; mae_pct?: number | null;
+  min_ate_mae?: number;
+};
+export type Diagnostico = {
+  resumo: {
+    operacoes: number; com_ticks: number; sem_ticks: number; periodo: string[] | null; mae_mediana: number | null;
+    mae_p10: number | null; mae_pior: number | null; mfe_mediana: number | null; duracao_mediana_min: number | null;
+    por_motivo: Record<string, { n: number; resultado_medio: number; mae_mediana: number | null }>; limites: string;
+  };
+  operacoes: OpDiagnostico[];
+};
 export type Atencao = { tipo: string; ticker?: string; tickers?: string[]; msg: string };
 export type Deal = {
   data_hora: string; ticker: string; tipo: string; entrada: string; qtd: number; preco: number; ticket_deal: number;

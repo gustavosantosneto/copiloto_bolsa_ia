@@ -1,6 +1,8 @@
 """Registro de deals → dados/{conta}_historico_trades.csv (1 linha por deal, append imediato)."""
 
 import csv
+import os
+import time
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -14,8 +16,9 @@ COLUNAS = [
     "margem_antes", "margem_depois", "margem_livre_antes", "margem_livre_depois",
     "nivel_margem_antes", "nivel_margem_depois", "margem_prevista_mt5",
     "deals_no_ciclo", "hora_snapshot_antes", "hora_snapshot_depois",
-    "conta", "ambiente", "fonte", "status", "obs",
+    "conta", "ambiente", "fonte", "status", "obs", "motivo",
 ]
+COLUNAS_SEM_MOTIVO = COLUNAS[:-1]  # formato até 2026-10-20 → migra ao abrir
 SNAP = ("saldo", "patrimonio", "margem", "margem_livre", "nivel_margem")
 
 
@@ -37,9 +40,27 @@ class Registro:
             return set()
         with open(self.caminho, newline="", encoding="utf-8") as f:
             leitor = csv.DictReader(f, delimiter=";")
-            if leitor.fieldnames != COLUNAS:
-                raise ValueError(f"{self.caminho.name}: cabeçalho diferente do esperado")
-            return {int(r["ticket_deal"]) for r in leitor if r["ticket_deal"]}
+            linhas = list(leitor)
+        if leitor.fieldnames == COLUNAS_SEM_MOTIVO:
+            self._reescrever(linhas)  # motivo vazio; importar() completa com o MT5
+        elif leitor.fieldnames != COLUNAS:
+            raise ValueError(f"{self.caminho.name}: cabeçalho diferente do esperado")
+        return {int(r["ticket_deal"]) for r in linhas if r["ticket_deal"]}
+
+    def _reescrever(self, linhas: list[dict]) -> None:
+        tmp = self.caminho.with_suffix(".tmp")
+        with open(tmp, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, COLUNAS, delimiter=";", restval="")
+            w.writeheader()
+            w.writerows(linhas)
+        for tentativa in range(5):  # Windows: leitor (API) com o arquivo aberto bloqueia a troca por instantes
+            try:
+                os.replace(tmp, self.caminho)  # troca atômica: arquivo nunca fica pela metade
+                return
+            except PermissionError:
+                if tentativa == 4:
+                    raise
+                time.sleep(0.2)
 
     def _linha(self, d: dict, fonte: str, evento: dict | None = None) -> dict:
         custos = d["comissao"] + d["taxa"] + d["swap"]  # MT5: custo vem negativo
@@ -49,6 +70,7 @@ class Registro:
             "ticket_deal": d["ticket"], "ticket_ordem": d["ordem"], "ticket_posicao": d["posicao"],
             "resultado_bruto": d["lucro"], "custos": custos, "resultado_liquido": d["lucro"] + custos,
             "conta": self.conta, "ambiente": self.ambiente, "fonte": fonte, "status": "observado",
+            "motivo": d.get("motivo", ""),
         }
         if evento:
             a, b = evento["snapshot_antes"], evento["snapshot_depois"]
@@ -69,9 +91,21 @@ class Registro:
         return len(novas)
 
     def importar(self, deals: list[dict]) -> int:
-        """Deals do histórico MT5 que ainda não estão no CSV (sem snapshot)."""
+        """Deals do histórico MT5 que ainda não estão no CSV (sem snapshot) + completa `motivo` vazio."""
         ordenados = sorted((d for d in deals if d["tipo"] in ("compra", "venda")), key=lambda d: d["horario"])
+        self._completar_motivos({d["ticket"]: d.get("motivo") for d in ordenados})
         return self._gravar([self._linha(d, "mt5_historico") for d in ordenados])
+
+    def _completar_motivos(self, motivos: dict[int, str | None]) -> None:
+        with open(self.caminho, newline="", encoding="utf-8") as f:
+            linhas = list(csv.DictReader(f, delimiter=";"))
+        mudou = False
+        for l in linhas:
+            m = motivos.get(int(l["ticket_deal"])) if l["ticket_deal"] else None
+            if m and not l["motivo"]:
+                l["motivo"], mudou = m, True
+        if mudou:
+            self._reescrever(linhas)
 
     def gravar_evento(self, evento: dict) -> int:
         """Evento `deal` do coletor (com snapshot antes/depois)."""
@@ -81,7 +115,7 @@ class Registro:
 
 
 TEXTO = {"data_hora", "ticker", "tipo", "entrada", "hora_snapshot_antes", "hora_snapshot_depois", "ambiente", "fonte",
-         "status", "obs"}
+         "status", "obs", "motivo"}
 INTEIRO = {"ticket_deal", "ticket_ordem", "ticket_posicao", "deals_no_ciclo", "conta"}
 
 

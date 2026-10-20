@@ -1,11 +1,12 @@
 // Atenções (apoio, nunca decisivo) — lateral direita com histórico. Repetidas agrupam (tipo + ativo): mostra só a última.
-// Ordem: ocorrência mais nova em cima. Histórico fica no navegador (localStorage), só conveniência.
+// Ordem: ocorrência mais nova em cima. Some e volta em < 2 min = mesma ocorrência. Histórico fica no navegador (localStorage), só conveniência.
 import { useEffect, useState } from "react";
 import type { Atencao } from "./api";
 
 type Item = { a: Atencao; inicio: string; ultima: string; vezes: number; ativa: boolean };
 const CHAVE = "copiloto.atencoes";
 const MAX = 200;
+const RETORNO_MS = 120_000; // some e volta em até 2 min = mesma ocorrência (evita contar oscilação)
 
 const chaveDe = (a: Atencao) => `${a.tipo}|${a.ticker ?? a.tickers?.join(",") ?? ""}`;
 const hhmmss = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR");
@@ -29,8 +30,9 @@ export function Atencoes({ atuais, atualizado }: { atuais?: Atencao[]; atualizad
       for (const [k, it] of Object.entries(h)) novo[k] = { ...it, ativa: false };
       for (const a of atuais) {
         const k = chaveDe(a), it = h[k];
-        novo[k] = it?.ativa
-          ? { ...it, a, ultima: agora }
+        const continua = it && (it.ativa || Date.parse(agora) - Date.parse(it.ultima) < RETORNO_MS);
+        novo[k] = continua
+          ? { ...it, a, ultima: agora, ativa: true }
           : { a, inicio: agora, ultima: agora, vezes: (it?.vezes ?? 0) + 1, ativa: true };
       }
       const mantidos = Object.entries(novo).sort((x, y) => y[1].inicio.localeCompare(x[1].inicio)).slice(0, MAX);

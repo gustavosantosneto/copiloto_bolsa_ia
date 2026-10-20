@@ -5,7 +5,8 @@ import sys
 
 import typer
 
-from copiloto import corretoras as corr, medicao, mercado as merc, resultado as res, spread as sprd
+from copiloto import corretoras as corr, diagnostico as diag, medicao, mercado as merc, negocios, resultado as res
+from copiloto import spread as sprd
 from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
 from copiloto.guardas import atencoes_atuais
@@ -172,13 +173,20 @@ def corretoras():
 
 @app.command()
 def mercado():
-    """Candles M1 da watchlist p/ estudo (data/mercado/): 1ª vez = dias_iniciais, depois incremental."""
+    """Candles M1 + negócios tick a tick da watchlist p/ estudo (data/mercado/): 1ª vez = dias_iniciais, depois incremental."""
     try:
         with ServicoMT5(_cfg()) as s:
-            _json(merc.atualizar(s, s.cfg))
+            _json({"candles": merc.atualizar(s, s.cfg), "negocios": negocios.atualizar(s, s.cfg)})
     except ErroMT5 as e:
         typer.echo(f"ERRO MT5: {e}", err=True)
         raise typer.Exit(1)
+
+
+@app.command()
+def diagnostico(dias: int = typer.Option(30, help="1 = hoje")):
+    """MAE/MFE das operações encerradas (negócios gravados por `copiloto mercado`). Estudo, nunca sinal."""
+    cfg = _cfg()
+    _json(diag.calcular(cfg, ler(cfg, dias)))
 
 
 @app.command()

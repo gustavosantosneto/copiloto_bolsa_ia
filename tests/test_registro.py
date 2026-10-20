@@ -5,7 +5,7 @@ import csv
 import pytest
 
 from copiloto.config import carregar_config
-from copiloto.registro import COLUNAS, Registro, ler
+from copiloto.registro import COLUNAS, COLUNAS_SEM_MOTIVO, Registro, ler
 
 
 def _deal(ticket=1, tipo="venda", entrada="entrada", lucro=0.0):
@@ -72,3 +72,16 @@ def test_ler_converte_e_filtra_por_dia(reg):
     r = ler(carregar_config(), 1, reg.caminho)
     assert [x["ticket_deal"] for x in r] == [2]
     assert r[0]["preco"] == 21.18 and r[0]["margem_antes"] is None and r[0]["ticker"] == "RADL3"
+
+
+def test_migra_csv_sem_motivo_e_completa_pelo_mt5(tmp_path):
+    caminho = tmp_path / "h.csv"
+    linha = {k: "" for k in COLUNAS_SEM_MOTIVO} | {"ticket_deal": "1", "data_hora": "2026-10-19T10:00:00.000"}
+    with open(caminho, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, COLUNAS_SEM_MOTIVO, delimiter=";")
+        w.writeheader()
+        w.writerow(linha)
+    reg = Registro(carregar_config(), 1, caminho)
+    assert _linhas(caminho)[0]["motivo"] == ""
+    reg.importar([{**_deal(1), "motivo": "tp"}])
+    assert _linhas(caminho)[0]["motivo"] == "tp" and len(_linhas(caminho)) == 1

@@ -185,6 +185,7 @@ class Mercado(Secao):
     dias_iniciais: int = Field(gt=0)
     bloco_dias: int = Field(gt=0)
     pasta: str
+    banco_ticks: str
 
     @field_validator("timeframe")
     @classmethod

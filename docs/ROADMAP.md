@@ -46,8 +46,13 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] Candles M1 90 dias da watchlist p/ estudo, incremental (`copiloto mercado`) — 2026-10-20
 - [x] Spread: atual × média do ativo em ticks, teto; atenção, nunca decisivo (`copiloto spread`, `/spread`) — 2026-10-20
 - [x] "Alerta" → "atenção" (CLI `atencoes`, `/atencoes`) — 2026-10-20
+- [x] Negócios tick a tick 90 d em SQLite, incremental (`copiloto mercado`) — 2026-10-20 (beta)
+- [x] Diagnóstico MAE/MFE por operação + motivo da saída no registro (`copiloto diagnostico`, `/diagnostico`) — 2026-10-20 (beta)
 - [ ] Isenções / taxas de plataforma por corretora (sem fonte pública auditável)
 - [ ] Painel: bloco de corretoras (hoje só CLI/API)
+
+## Versões
+- `v1` = em uso (`D:\Github\mt5_copiloto_ia_v1`) · `beta` = desenvolvimento, testes na demo · `main` = após validar.
 
 ## Fora da V1
 Similaridade, indicadores, backtest, chat, execução de ordens, EA MQL5, multi-conta.
@@ -56,7 +61,7 @@ Similaridade, indicadores, backtest, chat, execução de ordens, EA MQL5, multi-
 | # | Decisão | Status |
 |---|---|---|
 | 1 | Stack web | **React** (painel crescerá) — decidido 2026-10-19 |
-| 2 | Banco | **SQLite** local — decidido 2026-10-19; adiado até histórico crescer, CSV na V1 |
+| 2 | Banco | **SQLite** local — decidido 2026-10-19; ticks já em SQLite (2026-10-20); deals ainda CSV |
 | 3 | Formato config | **TOML** (`tomllib`) — decidido 2026-10-19 |
 | 4 | Limites de risco | Decidido 2026-10-19: `perda_max_dia` % do saldo início do dia; `perda_aberta_max_ativo/total_pct` = P&L aberto (% do saldo, folga = limite + P&L); margem usada = limite separado |
 | 5 | Corretora alvo real | pendente |

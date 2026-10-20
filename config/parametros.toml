@@ -108,10 +108,11 @@ timeframe = "M1"
 dias_iniciais = 90                 # [pref] 2026-10-20 1ª carga; depois incremental (`copiloto mercado`)
 bloco_dias = 7                     # [obs] 2026-10-20 SDK recusa intervalo M1 longo (~>60 d) → busca em blocos
 pasta = "data/mercado"             # fora do git (volume)
+banco_ticks = "data/mercado/ticks.sqlite"  # negócios tick a tick (~1 mi/ativo/90 d)
 
 [spread]                           # atenção, nunca decisivo
 spread_max_pct = 0.5               # [pref] 2026-10-20 % do preço; acima → atenção
-ticks_acima_media = 2              # [pref] 2026-10-20 spread > média do ativo + N ticks (centavos) → atenção
+ticks_acima_media = 4              # [pref] 2026-10-20 spread > média do ativo + N ticks (centavos) → atenção (2 gerava ruído)
 janela_sessoes = 20                # [hip] sessões M1 p/ média
 min_amostras = 300                 # [hip] candles mínimos p/ usar a média
 

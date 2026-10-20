@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from copiloto import corretoras, medicao, registro, resultado, spread
+from copiloto import corretoras, diagnostico, medicao, registro, resultado, spread
 from copiloto.capacidade import calcular
 from copiloto.config import carregar_config
 from copiloto.guardas import atencoes_atuais
@@ -86,6 +86,11 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     @app.get("/corretoras")
     def corretoras_simulacao():
         return _ler(lambda s: corretoras.simular(s.cfg, s.conta(), s.posicoes(), s.simbolos()))
+
+    @app.get("/diagnostico")
+    def diagnostico_operacoes(dias: int = 30):
+        cfg = estado["s"].cfg
+        return diagnostico.calcular(cfg, registro.ler(cfg, dias))
 
     @app.get("/spread")
     def spread_atual():
