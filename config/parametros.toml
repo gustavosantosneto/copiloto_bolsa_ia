@@ -91,7 +91,7 @@ host = "127.0.0.1"
 porta = 8000
 
 [painel]
-refresh_s = 2
+refresh_s = 1                      # [pref] 2026-10-19
 tema = "escuro"
 casas_decimais = 2
 

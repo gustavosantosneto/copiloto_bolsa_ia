@@ -5,7 +5,7 @@ import csv
 import pytest
 
 from copiloto.config import carregar_config
-from copiloto.registro import COLUNAS, Registro
+from copiloto.registro import COLUNAS, Registro, ler
 
 
 def _deal(ticket=1, tipo="venda", entrada="entrada", lucro=0.0):
@@ -63,3 +63,12 @@ def test_cabecalho_diferente_recusa(tmp_path):
 def test_colunas_cobrem_regra_de_gestao():
     for k in ("saldo", "patrimonio", "margem", "margem_livre", "nivel_margem"):
         assert f"{k}_antes" in COLUNAS and f"{k}_depois" in COLUNAS
+
+
+def test_ler_converte_e_filtra_por_dia(reg):
+    from datetime import date
+    hoje = date.today().isoformat()
+    reg.importar([{**_deal(1), "horario": "2020-01-01T10:00:00.000"}, {**_deal(2), "horario": f"{hoje}T10:00:00.000"}])
+    r = ler(carregar_config(), 1, reg.caminho)
+    assert [x["ticket_deal"] for x in r] == [2]
+    assert r[0]["preco"] == 21.18 and r[0]["margem_antes"] is None and r[0]["ticker"] == "RADL3"

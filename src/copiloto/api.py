@@ -1,11 +1,13 @@
 """API somente leitura (GET) — mesmos recursos da CLI. Painel web consome daqui."""
 
 import threading
+import time
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
+from copiloto import registro
 from copiloto.capacidade import calcular
 from copiloto.config import carregar_config
 from copiloto.guardas import alertas_atuais
@@ -13,16 +15,13 @@ from copiloto.mt5_servico import ErroMT5, ServicoMT5
 
 
 def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_config())) -> FastAPI:
-    estado: dict = {}
+    estado: dict = {"falha": None}  # falha = (horário, msg) da última conexão falha
     trava = threading.Lock()  # SDK MT5 é global ao processo → 1 chamada por vez
+    ESPERA_S = 5  # após falha, responde 503 direto por X s (não trava o painel)
 
     @asynccontextmanager
     async def ciclo_de_vida(_app):
-        estado["s"] = fabrica()
-        try:
-            estado["s"].conectar()
-        except ErroMT5:
-            pass  # sobe mesmo sem MT5; 1ª requisição tenta de novo
+        estado["s"] = fabrica()  # conexão só na 1ª requisição → API sobe na hora
         yield
 
     app = FastAPI(title="copiloto_bolsa_ia", description="Somente leitura. Nenhuma ordem é enviada.",
@@ -31,14 +30,18 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     def _ler(funcao: Callable[[ServicoMT5], object]):
         s = estado["s"]
         with trava:
+            if estado["falha"] and time.monotonic() - estado["falha"][0] < ESPERA_S:
+                raise HTTPException(503, estado["falha"][1])
             try:
                 return funcao(s)
             except ErroMT5:
-                try:  # conexão caiu → reconecta 1x e repete
-                    s.conectar()
+                try:  # sem conexão → 1 tentativa e repete
+                    s.conectar(tentativas=0)
+                    estado["falha"] = None
                     return funcao(s)
                 except ErroMT5 as e:
-                    raise HTTPException(503, f"MT5 indisponível: {e}") from e
+                    estado["falha"] = (time.monotonic(), f"MT5 indisponível: {e}")
+                    raise HTTPException(503, estado["falha"][1]) from e
 
     @app.get("/conta")
     def conta():
@@ -65,6 +68,14 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     def capacidade():
         return _ler(lambda s: calcular(s.cfg, s.conta(), s.posicoes(), s.simbolos(),
                                        lambda t, v, p: s.margem_prevista(t, "compra", v, p)))
+
+    @app.get("/registro")
+    def registro_deals(dias: int = 1):
+        return registro.ler(estado["s"].cfg, dias)
+
+    @app.get("/config")
+    def config():
+        return estado["s"].cfg.model_dump(mode="json")  # senha mascarada
 
     @app.get("/alertas")
     def alertas():

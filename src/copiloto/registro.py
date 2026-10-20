@@ -1,6 +1,7 @@
 """Registro de deals → dados/historico_trades.csv (1 linha por deal, append imediato)."""
 
 import csv
+from datetime import date, timedelta
 from pathlib import Path
 
 from copiloto.config import RAIZ, Config
@@ -72,3 +73,25 @@ class Registro:
         if evento.get("evento") != "deal" or evento["deal"]["tipo"] not in ("compra", "venda"):
             return 0
         return self._gravar([self._linha(evento["deal"], "coletor", evento)])
+
+
+TEXTO = {"data_hora", "ticker", "tipo", "entrada", "hora_snapshot_antes", "hora_snapshot_depois", "ambiente", "fonte",
+         "status", "obs"}
+INTEIRO = {"ticket_deal", "ticket_ordem", "ticket_posicao", "deals_no_ciclo", "conta"}
+
+
+def _valor(k: str, v: str):
+    if v == "":
+        return None
+    return v if k in TEXTO else int(float(v)) if k in INTEIRO else float(v)
+
+
+def ler(cfg: Config, dias: int = 1, caminho: Path | None = None) -> list[dict]:
+    """Deals gravados nos últimos N dias (hoje = 1), mais recente primeiro; vazio → None."""
+    caminho = caminho or RAIZ / cfg.registro.csv_historico
+    if not caminho.exists():
+        return []
+    desde = (date.today() - timedelta(days=dias - 1)).isoformat()
+    with open(caminho, newline="", encoding="utf-8") as f:
+        linhas = [r for r in csv.DictReader(f, delimiter=";") if r["data_hora"] >= desde]
+    return [{k: _valor(k, v) for k, v in r.items()} for r in reversed(linhas)]

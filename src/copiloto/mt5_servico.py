@@ -41,19 +41,20 @@ class ServicoMT5:
     def __exit__(self, *_):
         mt5.shutdown()
 
-    def conectar(self) -> None:
+    def conectar(self, tentativas: int | None = None) -> None:
         c, m = self.cfg.credenciais, self.cfg.mt5
+        tentativas = m.tentativas_reconexao if tentativas is None else tentativas
         if not c.completas:
             raise ErroMT5(f"credenciais MT5_{self.cfg.geral.ambiente.upper()}_* incompletas no .env")
         assert c.senha  # completas garante
         args = dict(login=c.login, password=c.senha.get_secret_value(), server=c.servidor, timeout=m.timeout_conexao_ms)
         if m.caminho_terminal:
             args["path"] = m.caminho_terminal
-        for tentativa in range(m.tentativas_reconexao + 1):
+        for tentativa in range(tentativas + 1):
             if mt5.initialize(**args):
                 return self._checa_ambiente()
             erro = _erro("initialize")
-            if tentativa == m.tentativas_reconexao:
+            if tentativa == tentativas:
                 raise erro
             time.sleep(m.intervalo_reconexao_s)
 

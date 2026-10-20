@@ -9,7 +9,7 @@ from copiloto.coletor import Coletor
 from copiloto.guardas import alertas_atuais
 from copiloto.config import Config, ErroConfig, carregar_config
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
-from copiloto.registro import Registro
+from copiloto.registro import Registro, ler
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -94,6 +94,12 @@ def alertas():
 
 
 @app.command()
+def registro(dias: int = typer.Option(1, help="1 = hoje")):
+    """Deals gravados no CSV (com snapshot antes/depois), mais recente primeiro."""
+    _json(ler(_cfg(), dias))
+
+
+@app.command()
 def coletar(ciclos: int = typer.Option(None, help="padrão: infinito (Ctrl+C para parar)")):
     """Poll do MT5; grava deals no CSV na hora e imprime 1 evento JSON por linha."""
     try:
@@ -132,3 +138,48 @@ def api():
 
     cfg = _cfg()
     uvicorn.run(criar_app(), host=cfg.api.host, port=cfg.api.porta)
+
+
+@app.command()
+def painel():
+    """Sobe coletor + API + web (Vite) juntos. Ctrl+C encerra tudo. Abrir http://localhost:5173"""
+    import shutil
+    import subprocess
+    import sys
+    import time
+
+    from copiloto.config import RAIZ
+
+    _cfg()  # falha cedo se config inválida
+    npm = shutil.which("npm")
+    if not npm:
+        typer.echo("ERRO: npm não encontrado (instale Node.js)", err=True)
+        raise typer.Exit(1)
+    web = RAIZ / "web"
+    if not (web / "node_modules").exists():
+        subprocess.run([npm, "install"], cwd=web, check=True)
+    (RAIZ / "logs").mkdir(exist_ok=True)
+    eventos = open(RAIZ / "logs" / "eventos.jsonl", "a", encoding="utf-8")
+    copiloto = [sys.executable, "-m", "copiloto.cli"]
+    processos = {
+        "coletor": subprocess.Popen([*copiloto, "coletar"], stdout=eventos),
+        "api": subprocess.Popen([*copiloto, "api"]),
+        "web": subprocess.Popen([npm, "run", "dev"], cwd=web),
+    }
+    typer.echo("Painel: http://localhost:5173  ·  eventos → logs/eventos.jsonl  ·  Ctrl+C encerra", err=True)
+    try:
+        while all(p.poll() is None for p in processos.values()):
+            time.sleep(1)
+        caiu = [n for n, p in processos.items() if p.poll() is not None]
+        typer.echo(f"ERRO: processo encerrou: {', '.join(caiu)}", err=True)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        for p in processos.values():
+            if p.poll() is None:  # Windows: /T mata a árvore (npm → node/vite)
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True) if sys.platform == "win32"                     else p.terminate()
+        eventos.close()
+
+
+if __name__ == "__main__":
+    app()

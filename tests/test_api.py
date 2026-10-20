@@ -12,7 +12,7 @@ class ServicoFalso:
         self.cfg = carregar_config()
         self.conexoes, self.falhas = 0, 0
 
-    def conectar(self):
+    def conectar(self, tentativas=None):
         self.conexoes += 1
 
     def conta(self):
@@ -50,7 +50,9 @@ def test_recursos_da_cli():
         assert [x["ticker"] for x in c.get("/simbolos", params={"tickers": "radl3, itub4"}).json()] == ["RADL3", "ITUB4"]
         assert c.get("/capacidade").json()["modo"] == "simulado"
         assert c.get("/alertas").json()[0]["tipo"] == "simbolo_sem_cotacao"
-    assert s.conexoes == 1
+        assert c.get("/config").json()["painel"]["refresh_s"] > 0
+        assert isinstance(c.get("/registro").json(), list)
+    assert s.conexoes == 0  # conexão só quando precisa
 
 
 def test_somente_leitura():
@@ -61,11 +63,13 @@ def test_somente_leitura():
         assert c.post("/conta").status_code == 405
 
 
-def test_reconecta_e_depois_503():
+def test_reconecta_e_depois_503_rapido():
     s = ServicoFalso()
     with _cliente(s) as c:
         s.falhas = 1
-        assert c.get("/conta").status_code == 200 and s.conexoes == 2
+        assert c.get("/conta").status_code == 200 and s.conexoes == 1
         s.falhas = 2
         r = c.get("/conta")
         assert r.status_code == 503 and "MT5 indisponível" in r.json()["detail"]
+        assert c.get("/conta").status_code == 503 and s.conexoes == 2  # dentro da espera: nem tenta
+        assert c.get("/config").status_code == 200  # não depende do MT5

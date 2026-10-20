@@ -44,6 +44,7 @@ def test_perda_aberta_consome_folga():
     assert r["conta"]["patrimonio"] == 4950.0 and r["conta"]["margem_usada"] == 100.0
     assert (a["qtd_carteira"], a["lucro_aberto"], a["folga_perda_ativo"]) == (1000.0, -50.0, 450.0)
     assert r["conta"]["folga_perda_total"] == 950.0
+    assert (r["conta"]["valor_posicoes"], r["conta"]["alavancagem_efetiva"]) == (20000.0, 4.04)
     assert a["lotes_operaveis"] == 5  # 15 − 10 lotes em carteira
 
 

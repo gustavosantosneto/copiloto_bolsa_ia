@@ -41,6 +41,7 @@ def calcular(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dict
         saldo, patrimonio = conta["saldo"], conta["patrimonio"]
         margem_usada, margem_livre = conta["margem"], conta["margem_livre"]
 
+    valor_posicoes = sum(p["volume"] * p["preco_atual"] for p in consideradas)
     r = cfg.risco
     teto_margem = r.margem_usada_max_pct / 100 * patrimonio - margem_usada
     limite_ativo = r.perda_aberta_max_ativo_pct / 100 * saldo
@@ -76,6 +77,8 @@ def calcular(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dict
     return {
         "modo": "simulado" if simulado else "conta",
         "conta": {"saldo": round(saldo, 2), "patrimonio": round(patrimonio, 2), "margem_usada": round(margem_usada, 2),
+                  "valor_posicoes": round(valor_posicoes, 2),
+                  "alavancagem_efetiva": round(valor_posicoes / patrimonio, 2) if patrimonio > 0 else None,
                   "margem_livre": round(margem_livre, 2), "limite_perda_ativo": round(limite_ativo, 2),
                   "folga_perda_total": round(folga_total, 2)},
         "ignoradas_fora_universo": sorted({p["ticker"] for p in posicoes} - universo) if simulado else [],

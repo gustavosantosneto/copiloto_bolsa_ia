@@ -31,7 +31,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md)) — 2026-10-19 (`copiloto alertas`, `/alertas`; capacidade zera sem cotação viva)
 - [x] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` + `simbolos`, `coletar` — 2026-10-19
 - [x] API leitura: mesmos recursos da CLI (FastAPI, `copiloto api`, GET only) — 2026-10-19
-- [ ] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático
+- [x] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático — 2026-10-19 (React+Vite, 1s, `copiloto painel`)
 
 ## Backlog V1.1 (corretoras/custos — pesquisa 2026-10)
 - [ ] Cadastro de corretoras e custos (day trade × swing, taxas B3, isenções)
