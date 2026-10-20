@@ -6,8 +6,11 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi",
     "MetaTrader5",
+    "numpy",
+    "pandas",
     "pydantic>=2",
     "python-dotenv",
+    "statsmodels",
     "typer",
     "uvicorn",
 ]

@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from copiloto import corretoras, diagnostico, medicao, registro, resultado, spread
+from copiloto import corretoras, diagnostico, medicao, registro, resultado, similaridade, spread
 from copiloto.capacidade import calcular
 from copiloto.config import carregar_config
 from copiloto.guardas import atencoes_atuais
@@ -91,6 +91,13 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     def diagnostico_operacoes(dias: int = 30):
         cfg = estado["s"].cfg
         return diagnostico.calcular(cfg, registro.ler(cfg, dias))
+
+    @app.get("/similaridade")
+    def similaridade_calculada():
+        d = similaridade.ler(estado["s"].cfg)
+        if d is None:
+            raise HTTPException(404, "sem cálculo: rode `copiloto similaridade`")
+        return d
 
     @app.get("/spread")
     def spread_atual():

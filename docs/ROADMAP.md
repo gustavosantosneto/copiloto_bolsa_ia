@@ -48,6 +48,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] "Alerta" → "atenção" (CLI `atencoes`, `/atencoes`) — 2026-10-20
 - [x] Negócios tick a tick 90 d em SQLite, incremental (`copiloto mercado`) — 2026-10-20 (beta)
 - [x] Diagnóstico MAE/MFE por operação + motivo da saída no registro (`copiloto diagnostico`, `/diagnostico`) — 2026-10-20 (beta)
+- [x] Similaridade: matriz bruta/sem mercado, fora da amostra, estabilidade, atraso M1, cointegração, Granger + página no painel — 2026-10-20 (beta)
 - [ ] Isenções / taxas de plataforma por corretora (sem fonte pública auditável)
 - [ ] Painel: bloco de corretoras (hoje só CLI/API)
 

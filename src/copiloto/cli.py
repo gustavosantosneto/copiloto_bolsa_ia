@@ -6,7 +6,7 @@ import sys
 import typer
 
 from copiloto import corretoras as corr, diagnostico as diag, medicao, mercado as merc, negocios, resultado as res
-from copiloto import spread as sprd
+from copiloto import similaridade as simil, spread as sprd
 from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
 from copiloto.guardas import atencoes_atuais
@@ -187,6 +187,15 @@ def diagnostico(dias: int = typer.Option(30, help="1 = hoje")):
     """MAE/MFE das operações encerradas (negócios gravados por `copiloto mercado`). Estudo, nunca sinal."""
     cfg = _cfg()
     _json(diag.calcular(cfg, ler(cfg, dias)))
+
+
+@app.command()
+def similaridade():
+    """Calcula matriz de similaridade, atraso, cointegração e Granger (M1 gravado) → [similaridade].arquivo. Estudo, nunca sinal."""
+    cfg = _cfg()
+    typer.echo(f"{simil.gravar(cfg)} atualizado", err=True)
+    d = simil.ler(cfg)
+    _json({"amostra": d["amostra"], "pares_mais_fortes": d["pares"][:10], "atrasos": d["atrasos"][:10]})
 
 
 @app.command()

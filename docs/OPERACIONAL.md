@@ -61,6 +61,11 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Janelas, limites, indicadores configuráveis.
 - Robustez: fora da amostra, estabilidade por janela, tamanho da amostra.
 - Usos: antecipação, convergência, reversão à média, hedge (pares inversos).
+- Implementado (`copiloto similaridade` → `/similaridade`; página Similaridade do painel):
+  - Correlação Pearson em M12, **bruta** e **sem mercado** (desconta beta × média dos outros ativos); janela toda, dentro e fora da amostra; estabilidade = fração das semanas com o mesmo sinal.
+  - Atraso líder→seguidor em M1 (sem mercado, até `lag_max_candles`, só dentro do dia) + Granger nos mais fortes.
+  - Cointegração (Engle-Granger) no log-preço M12.
+  - Muitos testes → q-valor Benjamini-Hochberg (`fdr_max`). Significativo ≠ útil: ρ pequeno não paga spread/custo.
 
 ## 7. Análise técnica e estratégias
 - VWAP diária, semanal, semana anterior; EMA24; RSI(10). Detalhe do terminal em [CONTEXTO.md](CONTEXTO.md).

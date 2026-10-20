@@ -155,6 +155,17 @@ class Similaridade(Secao):
     limiar_inversa: float = Field(ge=-1, lt=0)
     lag_max_candles: int = Field(ge=0)
     pct_fora_amostra: float = Field(gt=0, lt=100)
+    timeframe: str
+    timeframe_atraso: str
+    fdr_max: float = Field(gt=0, lt=1)
+    arquivo: str
+
+    @field_validator("timeframe", "timeframe_atraso")
+    @classmethod
+    def _tf(cls, v: str) -> str:
+        if v not in TIMEFRAMES_MT5:
+            raise ValueError(f"timeframe inválido: {v}")
+        return v
 
 
 class Indicadores(Secao):

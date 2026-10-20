@@ -13,7 +13,7 @@
 | 5 | Base operacional | Margem medida × alavancagem declarada, custos medidos, nº medições | V1.1 |
 | 6 | Resultado | Bruto/líquido, custo médio, ganho médio por operação e dia, drawdown · modo Diagnóstico: MAE/MFE por operação, por motivo de saída (beta) | V1.1 |
 | 7 | Atenções | Guardas: símbolo sem cotação, margem zero com posição (V1) · limites de risco, divergência de margem, spread (V1.1) | V1 · V1.1 |
-| 8 | Similaridade | Matriz direta/inversa, lag, retornos normalizados comparados | V2 |
+| 8 | Similaridade | Página própria: matriz 17×17 (% , opacidade = |ρ|), bruta × sem mercado, dentro × fora da amostra; lista líder→seguidor (beta) | V2 |
 | 9 | Simulação | Nova entrada → impacto em margem, exposição, preço médio, TP | V2 |
 | 10 | Chat agente | Pergunta livre → análise reproduzível | V4 |
 | 11 | Confirmação | Confirmação explícita antes de qualquer ordem | V5 |

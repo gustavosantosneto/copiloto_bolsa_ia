@@ -83,6 +83,10 @@ limiar_direta = 0.7
 limiar_inversa = -0.5
 lag_max_candles = 10
 pct_fora_amostra = 30
+timeframe = "M12"                  # [pref] 2026-10-20 correlação (gráfico principal)
+timeframe_atraso = "M1"            # [pref] 2026-10-20 atraso líder→seguidor (lag_max_candles em M1 = até 10 min)
+fdr_max = 0.05                     # [hip] q-valor máx. (Benjamini-Hochberg) p/ atraso/Granger/cointegração "significativo"
+arquivo = "data/mercado/similaridade.json"  # resultado do `copiloto similaridade` (API só lê)
 
 [indicadores]                      # V3
 ema_periodo = 24                   # [obs] method=1

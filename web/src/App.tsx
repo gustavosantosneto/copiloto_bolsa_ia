@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePoll, type Atencao, type BaseAtivo, type Capacidade as TCap, type Config, type Conta as TConta, type Deal, type Ordem, type Posicao, type Resultado as TRes, type Spread } from "./api";
 import { Atencoes } from "./Atencoes";
+import { Similaridade } from "./Similaridade";
 import { Base } from "./blocos/Base";
 import { Capacidade } from "./blocos/Capacidade";
 import { Conta } from "./blocos/Conta";
@@ -35,8 +36,26 @@ function Colunas({ n, children }: { n: number; children: ReactNode[] }) {
   );
 }
 
+type Pagina = "operacao" | "similaridade";
+const lerPagina = (): Pagina => {
+  try {
+    return localStorage.getItem("copiloto.pagina") === "similaridade" ? "similaridade" : "operacao";
+  } catch {
+    return "operacao";
+  }
+};
+
 function Painel({ cfg }: { cfg: Config }) {
   const [refMain, colunas] = useColunas();
+  const [pagina, setPaginaEstado] = useState<Pagina>(lerPagina);
+  const setPagina = (p: Pagina) => {
+    setPaginaEstado(p);
+    try {
+      localStorage.setItem("copiloto.pagina", p);
+    } catch {
+      /* sem storage */
+    }
+  };
   const ms = cfg.painel.refresh_s * 1000;
   const conta = usePoll<TConta>("/conta", ms);
   const posicoes = usePoll<Posicao[]>("/posicoes", ms);
@@ -55,9 +74,14 @@ function Painel({ cfg }: { cfg: Config }) {
         <h1>Copiloto Bolsa</h1>
         <span className={`selo ${cfg.geral.ambiente}`}>{cfg.geral.ambiente.toUpperCase()}</span>
         {cfg.geral.somente_leitura && <span className="selo">somente leitura</span>}
+        <nav className="abas">
+          <button className={pagina === "operacao" ? "ativa" : ""} onClick={() => setPagina("operacao")}>Operação</button>
+          <button className={pagina === "similaridade" ? "ativa" : ""} onClick={() => setPagina("similaridade")}>Similaridade</button>
+        </nav>
         <span className="relogio">{erro ? <span className="neg">⚠ {erro}</span> : conta.atualizado?.toLocaleTimeString("pt-BR")}</span>
       </header>
-      <div className="area">
+      {pagina === "similaridade" && <div className="area"><Similaridade /></div>}
+      <div className="area" hidden={pagina !== "operacao"}>
         <main ref={refMain} className={colunas === 1 ? "uma-coluna" : ""}>
           <Colunas n={colunas}>
             {[
