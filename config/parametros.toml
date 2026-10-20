@@ -91,11 +91,11 @@ vwap = ["diaria", "semanal", "semana_anterior"]
 
 [api]
 host = "127.0.0.1"
-porta = 8010                       # 8000 ocupada pelo VS Code (2026-10-20)
+porta = 8020                       # beta; v1 em uso = 8010 (8000 ocupada pelo VS Code)
 
 [painel]
 refresh_s = 1                      # [pref] 2026-10-19
-porta_web = 5180                   # Vite; 5173 ocupada pelo VS Code (2026-10-20)
+porta_web = 5190                   # beta; v1 em uso = 5180 (5173 ocupada pelo VS Code)
 tema = "escuro"
 casas_decimais = 2
 

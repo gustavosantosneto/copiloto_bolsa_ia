@@ -61,10 +61,11 @@ function Painel({ cfg }: { cfg: Config }) {
         <main ref={refMain} className={colunas === 1 ? "uma-coluna" : ""}>
           <Colunas n={colunas}>
             {[
+              // ordem por coluna → 2 colunas: [Conta | Posições] [Deals | Resultado] [Capacidade | Base]
               <Conta key="conta" conta={conta.dados} cap={cap.dados} />,
-              <Posicoes key="posicoes" posicoes={posicoes.dados} ordens={ordens.dados} />,
               <Historico key="historico" deals={deals.dados} />,
               <Capacidade key="capacidade" cap={cap.dados} spread={spread.dados} />,
+              <Posicoes key="posicoes" posicoes={posicoes.dados} ordens={ordens.dados} />,
               <Resultado key="resultado" res={res.dados} />,
               <Base key="base" base={base.dados} declarada={conta.dados?.alavancagem_declarada} />,
             ]}
