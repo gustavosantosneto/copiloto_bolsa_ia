@@ -24,7 +24,7 @@ Constituição = lei máxima; demais docs subordinados. Conflito entre pedido e 
 - Estilo telegráfico: tópicos, tabelas, setas. Sem prosa, sem repetir o que outro doc já diz → linkar.
 - Regra em `docs/*.md`; valor em `config/`; dado medido em `dados/`. Não misturar.
 - Todo fato/valor histórico: data (`AAAA-MM-DD`), fonte, status (`observado` · `preferencia` · `hipotese` · `pendente` · `fixture`).
-- Dado histórico de mercado = fixture de teste, nunca sinal/ordem.
+- Dado histórico de mercado = estudo/fixture de teste, nunca sinal/ordem.
 - Novo conhecimento → doc existente certo; doc novo só se não couber, e perguntar antes.
 
 ## Comportamento

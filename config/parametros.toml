@@ -41,7 +41,8 @@ disponiveis = ["M2", "M6", "M12", "H1", "D1"]
 [operacao]
 lote_padrao = 100                  # múltiplos de 100
 corretagem = 0.0                   # [obs]
-emolumentos_pct = 0.0              # [PENDENTE] medir; 0 até calibrar
+emolumentos_day_trade_pct = 0.023  # [obs] 2026-10-20 site B3, por lado, ADTV DT ≤R$0,2 mi, inclui tributos
+emolumentos_swing_pct = 0.030      # [obs] 2026-10-20 site B3, por lado, ADTV ≤R$3 mi
 max_operacoes_dia = 10              # [hip] referência, não trava
 ref_pct_nova_entrada = 0.25        # [hip] alternativas 0.15 / 0.40
 max_entradas_preco_medio = 10       # [PENDENTE]
@@ -52,10 +53,10 @@ perda_max_operacao = 200           # R$
 perda_aberta_max_ativo_pct = 10.0  # % do saldo; P&L aberto do ativo não pode passar de −isso (5k → −R$500)
 perda_aberta_max_total_pct = 20.0  # % do saldo; soma do P&L aberto de todas as posições
 margem_usada_max_pct = 20.0        # % do patrimônio; base = margem usada (limite separado)
-nivel_margem_min_pct = 2000      # alerta abaixo disso
+nivel_margem_min_pct = 2000      # atenção abaixo disso
 max_posicoes_abertas = 10
 max_lotes_ativo = 15               # [pref] 2026-10-19 lotes padrão por ativo (inclui os já em carteira)
-alerta_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
+atencao_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
 
 [simulacao]                        # só ambiente=demo; em real ignorado (usa conta + MT5)
 capital_simulado = 5000.0          # [pref] 2026-10-19 R$; demo tem ~R$1mi irreal. 0 = usar conta
@@ -65,8 +66,10 @@ alavancagem_simulada = 200.0       # [hip] 2026-10-19 até medir na real. 0 = ma
 snapshot_antes_depois = true       # regra de gestão: todo deal
 comparar_margem_prevista = true    # vs order_calc_margin
 tolerancia_divergencia_margem_pct = 10.0
-csv_historico = "dados/historico_trades.csv"
-csv_base_operacional = "dados/base_operacional.csv"
+csv_historico = "dados/{conta}_historico_trades.csv"         # 1 arquivo por conta MT5
+csv_base_operacional = "dados/{conta}_base_operacional.csv"  # gerado do histórico
+csv_corretoras = "dados/corretoras.csv"
+csv_margens_corretora = "dados/margens_corretora.csv"        # ativo × corretora
 min_medicoes_margem_validada = 3   # medições p/ considerar margem confiável
 
 [persistencia]
@@ -88,16 +91,29 @@ vwap = ["diaria", "semanal", "semana_anterior"]
 
 [api]
 host = "127.0.0.1"
-porta = 8000
+porta = 8010                       # 8000 ocupada pelo VS Code (2026-10-20)
 
 [painel]
 refresh_s = 1                      # [pref] 2026-10-19
+porta_web = 5180                   # Vite; 5173 ocupada pelo VS Code (2026-10-20)
 tema = "escuro"
 casas_decimais = 2
 
-[alertas]
-simbolo_sem_cotacao_s = 60         # sem tick há X s → alerta
+[atencoes]
+simbolo_sem_cotacao_s = 60         # sem tick há X s → atenção
 margem_zero_com_posicao = true     # anomalia XP Demo
+
+[mercado]                          # candles p/ estudo (dado de mercado = estudo/fixture, nunca sinal)
+timeframe = "M1"
+dias_iniciais = 90                 # [pref] 2026-10-20 1ª carga; depois incremental (`copiloto mercado`)
+bloco_dias = 7                     # [obs] 2026-10-20 SDK recusa intervalo M1 longo (~>60 d) → busca em blocos
+pasta = "data/mercado"             # fora do git (volume)
+
+[spread]                           # atenção, nunca decisivo
+spread_max_pct = 0.5               # [pref] 2026-10-20 % do preço; acima → atenção
+ticks_acima_media = 2              # [pref] 2026-10-20 spread > média do ativo + N ticks (centavos) → atenção
+janela_sessoes = 20                # [hip] sessões M1 p/ média
+min_amostras = 300                 # [hip] candles mínimos p/ usar a média
 
 [log]
 nivel = "INFO"

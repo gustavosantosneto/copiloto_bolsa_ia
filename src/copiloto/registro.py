@@ -1,4 +1,4 @@
-"""Registro de deals → dados/historico_trades.csv (1 linha por deal, append imediato)."""
+"""Registro de deals → dados/{conta}_historico_trades.csv (1 linha por deal, append imediato)."""
 
 import csv
 from datetime import date, timedelta
@@ -19,9 +19,14 @@ COLUNAS = [
 SNAP = ("saldo", "patrimonio", "margem", "margem_livre", "nivel_margem")
 
 
+def arquivo(cfg: Config, chave: str, conta: int | None = None) -> Path:
+    """Arquivo da conta (`{conta}` no caminho de [registro]); sem conta → login do .env."""
+    return RAIZ / getattr(cfg.registro, chave).format(conta=conta or cfg.credenciais.login)
+
+
 class Registro:
     def __init__(self, cfg: Config, conta: int, caminho: Path | None = None):
-        self.caminho = caminho or RAIZ / cfg.registro.csv_historico
+        self.caminho = caminho or arquivo(cfg, "csv_historico", conta)
         self.conta, self.ambiente = conta, cfg.geral.ambiente
         self.tickets = self._tickets_gravados()
 
@@ -86,12 +91,12 @@ def _valor(k: str, v: str):
     return v if k in TEXTO else int(float(v)) if k in INTEIRO else float(v)
 
 
-def ler(cfg: Config, dias: int = 1, caminho: Path | None = None) -> list[dict]:
-    """Deals gravados nos últimos N dias (hoje = 1), mais recente primeiro; vazio → None."""
-    caminho = caminho or RAIZ / cfg.registro.csv_historico
+def ler(cfg: Config, dias: int | None = 1, caminho: Path | None = None) -> list[dict]:
+    """Deals gravados nos últimos N dias (hoje = 1; None = tudo), mais recente primeiro; vazio → None."""
+    caminho = caminho or arquivo(cfg, "csv_historico")
     if not caminho.exists():
         return []
-    desde = (date.today() - timedelta(days=dias - 1)).isoformat()
+    desde = (date.today() - timedelta(days=dias - 1)).isoformat() if dias else ""
     with open(caminho, newline="", encoding="utf-8") as f:
         linhas = [r for r in csv.DictReader(f, delimiter=";") if r["data_hora"] >= desde]
     return [{k: _valor(k, v) for k, v in r.items()} for r in reversed(linhas)]

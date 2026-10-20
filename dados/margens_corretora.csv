@@ -1,0 +1,3 @@
+ticker;corretora;alavancagem;fonte;url;data;valido_ate;status
+ABEV3;Clear;200;site;https://corretora.clear.com.br/estrategias/day-trade/;2026-10-20;2026-11-20;hipotese
+ITUB4;Clear;200;site;https://corretora.clear.com.br/estrategias/day-trade/;2026-10-20;2026-11-20;hipotese

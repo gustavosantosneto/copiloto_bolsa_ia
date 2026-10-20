@@ -32,7 +32,7 @@ def sdk(monkeypatch):
     f = NS(
         init_ok=[True], chamadas_init=0, trade_mode=0,
         shutdown=lambda: None, last_error=lambda: (-1, "falha"),
-        symbol_info=lambda t: NS(visible=True, volume_min=100, volume_step=100, trade_contract_size=1,
+        symbol_info=lambda t: NS(visible=True, point=0.01, volume_min=100, volume_step=100, trade_contract_size=1,
                                  margin_initial=0.0, trade_calc_mode=32) if t == "ABEV3" else None,
         symbol_info_tick=lambda t: NS(bid=1.0, ask=1.1, last=1.05, time_msc=1_760_000_000_000),
     )

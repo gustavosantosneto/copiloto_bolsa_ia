@@ -95,7 +95,8 @@ class Timeframes(Secao):
 class Operacao(Secao):
     lote_padrao: int = Field(gt=0, multiple_of=100)
     corretagem: float = Field(ge=0)
-    emolumentos_pct: float = Field(ge=0, le=100)
+    emolumentos_day_trade_pct: float = Field(ge=0, le=100)
+    emolumentos_swing_pct: float = Field(ge=0, le=100)
     max_operacoes_dia: int = Field(gt=0)
     ref_pct_nova_entrada: float = Field(gt=0, le=100)
     max_entradas_preco_medio: int = Field(gt=0)
@@ -110,7 +111,7 @@ class Risco(Secao):
     nivel_margem_min_pct: float = Field(gt=0)
     max_posicoes_abertas: int = Field(gt=0)
     max_lotes_ativo: int = Field(gt=0)
-    alerta_correlacao_posicoes: float = Field(gt=0, le=1)
+    atencao_correlacao_posicoes: float = Field(gt=0, le=1)
 
     @model_validator(mode="after")
     def _ativo_ate_total(self):
@@ -130,7 +131,16 @@ class Registro(Secao):
     tolerancia_divergencia_margem_pct: float = Pct
     csv_historico: str
     csv_base_operacional: str
+    csv_corretoras: str
+    csv_margens_corretora: str
     min_medicoes_margem_validada: int = Field(gt=0)
+
+    @field_validator("csv_historico", "csv_base_operacional")
+    @classmethod
+    def _por_conta(cls, v: str) -> str:
+        if "{conta}" not in v:
+            raise ValueError("caminho precisa de {conta} (1 arquivo por conta)")
+        return v
 
 
 class Persistencia(Secao):
@@ -160,13 +170,35 @@ class Api(Secao):
 
 class Painel(Secao):
     refresh_s: float = Field(gt=0)
+    porta_web: int = Field(gt=0, le=65535)
     tema: Literal["escuro", "claro"]
     casas_decimais: int = Field(ge=0, le=8)
 
 
-class Alertas(Secao):
+class Atencoes(Secao):
     simbolo_sem_cotacao_s: float = Field(gt=0)
     margem_zero_com_posicao: bool
+
+
+class Mercado(Secao):
+    timeframe: str
+    dias_iniciais: int = Field(gt=0)
+    bloco_dias: int = Field(gt=0)
+    pasta: str
+
+    @field_validator("timeframe")
+    @classmethod
+    def _tf(cls, v: str) -> str:
+        if v not in TIMEFRAMES_MT5:
+            raise ValueError(f"timeframe inválido: {v}")
+        return v
+
+
+class Spread(Secao):
+    spread_max_pct: float = Pct
+    ticks_acima_media: float = Field(gt=0)
+    janela_sessoes: int = Field(gt=0)
+    min_amostras: int = Field(gt=1)
 
 
 class Log(Secao):
@@ -200,7 +232,9 @@ class Config(Secao):
     indicadores: Indicadores
     api: Api
     painel: Painel
-    alertas: Alertas
+    atencoes: Atencoes
+    mercado: Mercado
+    spread: Spread
     log: Log
     credenciais: Credenciais = Credenciais()
 

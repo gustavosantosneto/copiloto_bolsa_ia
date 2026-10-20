@@ -15,7 +15,7 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 | Fase | Nome | Entrega | Pronto quando |
 |---|---|---|---|
 | **V1** | Olhar | Coletor MT5, registro de deals + snapshot antes/depois, capacidade por ativo, painel leitura, CLI | Opero no MT5 e vejo conta/posições/histórico no painel em ~1s |
-| V1.1 | Medir | Margem/alavancagem/custos medidos por ativo, P&L líquido, stats por dia, alertas de limite | `base_operacional` preenchida pelos trades reais |
+| V1.1 | Medir | Margem/alavancagem/custos medidos por ativo, P&L líquido, stats por dia, atenções de limite | `base_operacional` preenchida pelos trades reais |
 | V2 | Relacionar | Similaridade direta/inversa, lag líder→seguidor, simulação de nova entrada/preço médio | Matriz no painel com robustez fora da amostra |
 | V3 | Testar | Indicadores (VWAP, EMA24, RSI10), backtest com custos, MAE/MFE, catálogo de hipóteses | Hipótese testada com relatório reproduzível |
 | V4 | Investigar | Chat agente no painel usando ferramentas da CLI | Pergunta livre → análise com limites declarados |
@@ -28,17 +28,26 @@ MT5 terminal ──IPC──> coletor Python (poll 1s) ──> CSV (SQLite quand
 - [x] Registro: deal + snapshot antes/depois → CSV `dados/historico_trades.csv` (append imediato + import do histórico MT5) — 2026-10-19
 - [ ] SQLite: só quando o histórico crescer (decidido 2026-10-19); CSV por enquanto
 - [x] Capacidade operacional por ativo da watchlist — 2026-10-19 (demo simulada R$5k × 200x)
-- [x] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md)) — 2026-10-19 (`copiloto alertas`, `/alertas`; capacidade zera sem cotação viva)
+- [x] Guardas: símbolo sem cotação, margem zero com posição (ver [CONTEXTO.md](CONTEXTO.md)) — 2026-10-19 (`copiloto atencoes`, `/atencoes`; capacidade zera sem cotação viva)
 - [x] CLI: `conta`, `posicoes`, `ordens`, `historico`, `capacidade` + `simbolos`, `coletar` — 2026-10-19
 - [x] API leitura: mesmos recursos da CLI (FastAPI, `copiloto api`, GET only) — 2026-10-19
 - [x] Web: blocos V1 do [PAINEL.md](PAINEL.md), refresh automático — 2026-10-19 (React+Vite, 1s, `copiloto painel`)
 
-## Backlog V1.1 (corretoras/custos — pesquisa 2026-10)
-- [ ] Cadastro de corretoras e custos (day trade × swing, taxas B3, isenções)
-- [ ] Matriz margem ativo × corretora × plataforma, com origem e `valido_ate`
-- [ ] Custo efetivo por operação
-- [ ] Simulação de capacidade de compra/alavancagem por corretora
-- [ ] Comparativo de corretoras considerando integração MT5/API
+→ Backlog V1 entregue 2026-10-19 (exceto SQLite, adiado). V1.1 antecipada por decisão do responsável 2026-10-20.
+
+## Backlog V1.1 — 2026-10-20
+- [x] Arquivos por conta: `dados/{conta}_*.csv` (base p/ SQLite por conta depois)
+- [x] Base operacional: margem/alavancagem medidas por ativo, comparadas c/ MT5 (`copiloto base`, `/base`)
+- [x] P&L líquido, stats por dia, drawdown realizado (`copiloto resultado`, `/resultado`)
+- [x] Atenções de limite: perda dia/operação, perda aberta ativo/total, margem usada, nível de margem, divergência de margem
+- [x] Custos: emolumentos B3 day trade × swing ([parametros.toml](../config/parametros.toml)); custo MT5 tem prioridade
+- [x] Cadastro de corretoras + matriz ativo × corretora com origem e `valido_ate` (`dados/corretoras.csv`, `dados/margens_corretora.csv`)
+- [x] Custo efetivo por operação + capacidade simulada por corretora (`copiloto corretoras`, `/corretoras`)
+- [x] Candles M1 90 dias da watchlist p/ estudo, incremental (`copiloto mercado`) — 2026-10-20
+- [x] Spread: atual × média do ativo em ticks, teto; atenção, nunca decisivo (`copiloto spread`, `/spread`) — 2026-10-20
+- [x] "Alerta" → "atenção" (CLI `atencoes`, `/atencoes`) — 2026-10-20
+- [ ] Isenções / taxas de plataforma por corretora (sem fonte pública auditável)
+- [ ] Painel: bloco de corretoras (hoje só CLI/API)
 
 ## Fora da V1
 Similaridade, indicadores, backtest, chat, execução de ordens, EA MQL5, multi-conta.

@@ -1,4 +1,5 @@
 // Bloco 1 — Conta (MT5) + conta usada no cálculo (simulada na demo)
+import { Card } from "../Card";
 import type { Capacidade, Conta as TConta } from "../api";
 import { brl, num, sinal } from "../formato";
 
@@ -14,8 +15,7 @@ function Item({ rotulo, valor, classe = "" }: { rotulo: string; valor: string; c
 export function Conta({ conta, cap }: { conta?: TConta; cap?: Capacidade }) {
   const c = cap?.conta;
   return (
-    <section className="bloco">
-      <h2>Conta</h2>
+    <Card id="conta" titulo={<>Conta</>}>
       {c && (
         <>
           <div className="sub">{cap.modo === "simulado" ? "Simulada (base dos cálculos)" : "Conta"}</div>
@@ -43,6 +43,6 @@ export function Conta({ conta, cap }: { conta?: TConta; cap?: Capacidade }) {
           </div>
         </>
       )}
-    </section>
+    </Card>
   );
 }

@@ -1,12 +1,14 @@
 """CLI `copiloto` — mesmos comandos para humano e agente."""
 
 import json
+import sys
 
 import typer
 
+from copiloto import corretoras as corr, medicao, mercado as merc, resultado as res, spread as sprd
 from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
-from copiloto.guardas import alertas_atuais
+from copiloto.guardas import atencoes_atuais
 from copiloto.config import Config, ErroConfig, carregar_config
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
 from copiloto.registro import Registro, ler
@@ -17,6 +19,7 @@ app = typer.Typer(no_args_is_help=True, add_completion=False)
 @app.callback()
 def main():
     """Copiloto de trading MT5."""
+    sys.stdout.reconfigure(encoding="utf-8")  # console Windows (cp1252) quebra com →, ≥, Δ
 
 
 def _cfg() -> Config:
@@ -29,6 +32,15 @@ def _cfg() -> Config:
 
 def _json(dados) -> None:
     typer.echo(json.dumps(dados, indent=2, ensure_ascii=False))
+
+
+def _ler_mt5_com(funcao) -> None:
+    try:
+        with ServicoMT5(_cfg()) as s:
+            _json(funcao(s))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
 
 
 def _ler_mt5(metodo: str, **kw) -> None:
@@ -83,11 +95,11 @@ def simbolos(tickers: list[str] = typer.Argument(None, help="padrão: watchlist"
 
 
 @app.command()
-def alertas():
-    """Guardas: símbolo sem cotação viva, posição com margem zero."""
+def atencoes():
+    """Guardas (sem cotação viva, margem zero) + limites de risco e divergência de margem."""
     try:
         with ServicoMT5(_cfg()) as s:
-            _json(alertas_atuais(s))
+            _json(atencoes_atuais(s))
     except ErroMT5 as e:
         typer.echo(f"ERRO MT5: {e}", err=True)
         raise typer.Exit(1)
@@ -104,11 +116,14 @@ def coletar(ciclos: int = typer.Option(None, help="padrão: infinito (Ctrl+C par
     """Poll do MT5; grava deals no CSV na hora e imprime 1 evento JSON por linha."""
     try:
         with ServicoMT5(_cfg()) as s:
-            reg = Registro(s.cfg, s.conta()["login"])
+            login = s.conta()["login"]
+            reg = Registro(s.cfg, login)
             n = reg.importar(s.deals())
             typer.echo(f"{reg.caminho.name}: {n} deals importados do histórico MT5", err=True)
+            medicao.gravar_base(s.cfg, login)
             for e in Coletor(s, s.cfg).rodar(ciclos):
-                reg.gravar_evento(e)
+                if reg.gravar_evento(e):
+                    medicao.gravar_base(s.cfg, login)  # deal com snapshot → nova medição
                 typer.echo(json.dumps(e, ensure_ascii=False))
     except ErroMT5 as e:
         typer.echo(f"ERRO MT5: {e}", err=True)
@@ -130,6 +145,49 @@ def capacidade():
 
 
 @app.command()
+def base():
+    """Regera e mostra a base operacional da conta (margem/alavancagem medidas por ativo)."""
+    cfg = _cfg()
+    typer.echo(f"{medicao.gravar_base(cfg).name} atualizado", err=True)
+    _json(medicao.consolidar(cfg, ler(cfg, None)))
+
+
+@app.command()
+def resultado(dias: int = typer.Option(30, help="1 = hoje")):
+    """Resultado realizado: bruto, custos, líquido, médias por operação/dia, drawdown."""
+    cfg = _cfg()
+    _json(res.calcular(cfg, ler(cfg, dias)))
+
+
+@app.command()
+def corretoras():
+    """Cadastro de corretoras + capacidade e custo de 1 lote day trade em cada uma."""
+    try:
+        with ServicoMT5(_cfg()) as s:
+            _json(corr.simular(s.cfg, s.conta(), s.posicoes(), s.simbolos()))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def mercado():
+    """Candles M1 da watchlist p/ estudo (data/mercado/): 1ª vez = dias_iniciais, depois incremental."""
+    try:
+        with ServicoMT5(_cfg()) as s:
+            _json(merc.atualizar(s, s.cfg))
+    except ErroMT5 as e:
+        typer.echo(f"ERRO MT5: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def spread():
+    """Spread atual × média/desvio do ativo (M1 gravado). Só atenção, nunca decisivo."""
+    _ler_mt5_com(lambda s: sprd.avaliar(s.cfg, s.simbolos()))
+
+
+@app.command()
 def api():
     """Sobe a API somente leitura (host/porta em [api])."""
     import uvicorn
@@ -142,15 +200,15 @@ def api():
 
 @app.command()
 def painel():
-    """Sobe coletor + API + web (Vite) juntos. Ctrl+C encerra tudo. Abrir http://localhost:5173"""
+    """Sobe coletor + API + web (Vite) juntos. Ctrl+C encerra tudo. Portas: [api].porta, [painel].porta_web."""
+    import os
     import shutil
     import subprocess
-    import sys
     import time
 
     from copiloto.config import RAIZ
 
-    _cfg()  # falha cedo se config inválida
+    cfg = _cfg()  # falha cedo se config inválida
     npm = shutil.which("npm")
     if not npm:
         typer.echo("ERRO: npm não encontrado (instale Node.js)", err=True)
@@ -164,9 +222,10 @@ def painel():
     processos = {
         "coletor": subprocess.Popen([*copiloto, "coletar"], stdout=eventos),
         "api": subprocess.Popen([*copiloto, "api"]),
-        "web": subprocess.Popen([npm, "run", "dev"], cwd=web),
+        "web": subprocess.Popen([npm, "run", "dev"], cwd=web, env=os.environ | {
+            "COPILOTO_API": f"http://{cfg.api.host}:{cfg.api.porta}", "COPILOTO_PORTA_WEB": str(cfg.painel.porta_web)}),
     }
-    typer.echo("Painel: http://localhost:5173  ·  eventos → logs/eventos.jsonl  ·  Ctrl+C encerra", err=True)
+    typer.echo(f"Painel: http://localhost:{cfg.painel.porta_web}  ·  eventos → logs/eventos.jsonl  ·  Ctrl+C encerra", err=True)
     try:
         while all(p.poll() is None for p in processos.values()):
             time.sleep(1)

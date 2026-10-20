@@ -1,16 +1,15 @@
 # Contexto — fatos, preferências, histórico
 
 > Conhecimento acumulado. **Não** é estado atual da conta nem sinal de operação. Dados de mercado aqui → fixtures de teste, nunca ordem.
-> Formato: `item | valor | data | fonte | status`. Status: `observado` · `preferencia` · `hipotese` · `pendente`.
+> Formato: `item | valor | data | fonte | status`. Status: `observado` · `preferencia` · `hipotese` · `pendente` · `fixture`.
 
 ## Perfil
-| Item | Valor | Data | Fonte | Status |
-|---|---|---|---|---|
-| Experiência | Estuda trading desde ~2019; usa MT5 | — | gpt_web | observado |
-| Janela operação | 11h–16h, até ~4h/dia | — | gpt_web | preferencia |
-| Operações/dia | ~6 | — | gpt_web | hipotese |
-| Caixa real | ~R$5 mil → meta R$10 mil | — | gpt_web | observado |
-| Meta aspiracional | R$100/dia com R$10 mil — **nunca** codificar como meta/garantia | — | gpt_web | preferencia |
+| Item | Valor | Fonte | Status |
+|---|---|---|---|
+| Experiência | Estuda trading desde ~2019; usa MT5 | gpt_web | observado |
+| Operações/dia | ~6 | gpt_web | hipotese |
+| Caixa real | ~R$5 mil → meta R$10 mil | gpt_web | observado |
+| Meta aspiracional | R$100/dia com R$10 mil — **nunca** codificar como meta/garantia | gpt_web | preferencia |
 
 ## Universo
 | Item | Valor | Data | Fonte | Status |
@@ -35,17 +34,13 @@
 | Genial | Faixas 25x/50x por ativo/plataforma | 2026-08-25 | site | observado |
 | Rico/Toro/Modal | Sem matriz pública auditável | 2026-08-25 | site | observado |
 | Pesquisa custos | 12 corretoras; corretagem zero/mínima; separar day trade × swing; taxas B3, plataforma, condições de isenção | 2026-10 | gpt_web | observado |
-| XP | Até 200x, restrito por ativo | 2026-10 | site | observado |
-| Clear | Até 200x em ações; PETR4 125x | 2026-10 | site | observado |
-| Genial | 50x p/ 10 ativos; até 25x demais | 2026-10 | site | observado |
-| Toro | Até 70x | 2026-10 | site | observado |
-| Rico | Ex. público 10x, não universal | 2026-10 | site | observado |
-| BTG | Na pesquisa; margem individual não confirmada | 2026-10 | site | pendente |
 | Descoberta | Margem varia por ativo × corretora × plataforma × conta. Tabela pública = teto, não garantia | 2026-10 | gpt_web | observado |
 | Regra | Valores reais só medidos na corretora escolhida; toda margem com origem e validade | — | — | regra |
 
+Cadastro atual por corretora → [dados/corretoras.csv](../dados/corretoras.csv) · [dados/margens_corretora.csv](../dados/margens_corretora.csv).
+
 ## Trades históricos (fixtures)
-→ [tests/fixtures/trades_gpt_web.csv](../tests/fixtures/trades_gpt_web.csv) (fixtures gpt_web). Deals reais → [dados/historico_trades.csv](../dados/historico_trades.csv). Casos de risco: RADL3 drawdown intradiário >R$400; BBAS3 fechado manual ~−R$623 (2026-09-24).
+→ [tests/fixtures/trades_gpt_web.csv](../tests/fixtures/trades_gpt_web.csv) (fixtures gpt_web). Deals reais → `dados/{conta}_historico_trades.csv`. Casos de risco: RADL3 drawdown intradiário >R$400; BBAS3 fechado manual ~−R$623 (2026-09-24).
 
 ## Anomalias da XP Demo (testes de robustez)
 | Caso | Dado | Data | Lição |

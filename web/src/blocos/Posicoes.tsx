@@ -1,4 +1,5 @@
 // Bloco 2 — Posições abertas e ordens pendentes
+import { Card } from "../Card";
 import type { Ordem, Posicao } from "../api";
 import { brl, hoje, hora, inteiro, num, sinal } from "../formato";
 
@@ -6,8 +7,7 @@ const alvo = (v: number) => (v ? num(v) : "—");
 
 export function Posicoes({ posicoes, ordens }: { posicoes?: Posicao[]; ordens?: Ordem[] }) {
   return (
-    <section className="bloco">
-      <h2>Posições ({posicoes?.length ?? 0}) e ordens ({ordens?.length ?? 0})</h2>
+    <Card id="posicoes" titulo={<>Posições ({posicoes?.length ?? 0}) e ordens ({ordens?.length ?? 0})</>}>
       <table>
         <thead>
           <tr>
@@ -40,6 +40,6 @@ export function Posicoes({ posicoes, ordens }: { posicoes?: Posicao[]; ordens?: 
           )}
         </tbody>
       </table>
-    </section>
+    </Card>
   );
 }

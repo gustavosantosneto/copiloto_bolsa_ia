@@ -129,10 +129,29 @@ class ServicoMT5:
                 "ticker": t, "existe": True, "visivel": s.visible,
                 "bid": k.bid if k else None, "ask": k.ask if k else None, "ultimo": k.last if k else None,
                 "horario_cotacao": _hora(k.time_msc / 1000) if k and k.time_msc else None,
-                "lote_min": s.volume_min, "passo_lote": s.volume_step, "tamanho_contrato": s.trade_contract_size,
+                "ponto": s.point, "lote_min": s.volume_min, "passo_lote": s.volume_step, "tamanho_contrato": s.trade_contract_size,
                 "margem_inicial": s.margin_initial, "modo_calculo": s.trade_calc_mode,
             })
         return saida
+
+    def candles(self, ticker: str, desde: datetime, ate: datetime) -> list[dict]:
+        """Candles de [mercado].timeframe entre desde/ate (horário do servidor), buscados em blocos (SDK recusa intervalo longo)."""
+        m = self.cfg.mercado
+        tf = getattr(mt5, f"TIMEFRAME_{m.timeframe}")
+        # SDK converte datetime sem fuso p/ UTC (+3h, observado 2026-10-20) → marcar horário do servidor como UTC
+        saida, ini, ate = [], desde.replace(tzinfo=UTC), ate.replace(tzinfo=UTC)
+        while ini < ate:
+            fim = min(ini + timedelta(days=m.bloco_dias), ate)
+            r = mt5.copy_rates_range(ticker, tf, ini, fim)
+            if r is None:
+                raise _erro(f"copy_rates_range {ticker}")
+            saida += [{
+                "horario": _hora(c["time"]), "abertura": float(c["open"]), "maxima": float(c["high"]),
+                "minima": float(c["low"]), "fechamento": float(c["close"]), "volume_ticks": int(c["tick_volume"]),
+                "volume_real": float(c["real_volume"]), "spread_pts": int(c["spread"]),
+            } for c in r]
+            ini = fim
+        return list({c["horario"]: c for c in saida}.values())  # bordas dos blocos podem repetir
 
     def margem_prevista(self, ticker: str, tipo: str, volume: float, preco: float) -> float | None:
         """Margem que o MT5 calcula (order_calc_margin) — só cálculo, não envia nada."""

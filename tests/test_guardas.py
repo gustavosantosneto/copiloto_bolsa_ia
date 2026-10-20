@@ -19,13 +19,13 @@ def test_cotacao_viva_por_idade_so_no_pregao():
     assert not cotacao_viva(CFG, {"ticker": "X", "existe": False}, NOITE)
 
 
-def test_posicao_fantasma_gera_dois_alertas():
+def test_posicao_fantasma_gera_dois_atencoes():
     a = verificar(CFG, {"margem": 0.0}, [FANTASMA], [VIVA, PARADA], PREGAO)
     assert [(x["tipo"], x.get("ticker")) for x in a] == [("simbolo_sem_cotacao", "WDOG26"), ("margem_zero_com_posicao", None)]
     assert a[0]["em_carteira"] and a[1]["tickers"] == ["WDOG26"]
 
 
-def test_tudo_normal_sem_alertas():
+def test_tudo_normal_sem_atencoes():
     assert verificar(CFG, {"margem": 10.0}, [{**FANTASMA, "ticker": "RADL3"}], [VIVA], PREGAO) == []
 
 

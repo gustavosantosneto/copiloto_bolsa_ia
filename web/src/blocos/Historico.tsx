@@ -1,14 +1,12 @@
 // Bloco 4 — Deals do dia (CSV do coletor) + margem antes/depois
+import { Card } from "../Card";
 import type { Deal } from "../api";
 import { brl, hora, inteiro, num, sinal } from "../formato";
 
 export function Historico({ deals }: { deals?: Deal[] }) {
   const resultado = deals?.reduce((s, d) => s + (d.entrada === "entrada" ? 0 : d.resultado_liquido), 0) ?? 0;
   return (
-    <section className="bloco">
-      <h2>
-        Deals de hoje ({deals?.length ?? 0}) · realizado <span className={sinal(resultado)}>{brl(resultado)}</span>
-      </h2>
+    <Card id="historico" titulo={<>Deals de hoje ({deals?.length ?? 0}) · realizado <span className={sinal(resultado)}>{brl(resultado)}</span></>}>
       <table>
         <thead>
           <tr>
@@ -33,6 +31,6 @@ export function Historico({ deals }: { deals?: Deal[] }) {
           {!deals?.length && <tr><td colSpan={9} className="vazio">Nenhum deal hoje</td></tr>}
         </tbody>
       </table>
-    </section>
+    </Card>
   );
 }

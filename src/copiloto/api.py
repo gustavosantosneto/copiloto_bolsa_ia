@@ -7,10 +7,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from copiloto import registro
+from copiloto import corretoras, medicao, registro, resultado, spread
 from copiloto.capacidade import calcular
 from copiloto.config import carregar_config
-from copiloto.guardas import alertas_atuais
+from copiloto.guardas import atencoes_atuais
 from copiloto.mt5_servico import ErroMT5, ServicoMT5
 
 
@@ -73,12 +73,30 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
     def registro_deals(dias: int = 1):
         return registro.ler(estado["s"].cfg, dias)
 
+    @app.get("/base")
+    def base():
+        cfg = estado["s"].cfg
+        return medicao.consolidar(cfg, registro.ler(cfg, None))
+
+    @app.get("/resultado")
+    def resultado_realizado(dias: int = 30):
+        cfg = estado["s"].cfg
+        return resultado.calcular(cfg, registro.ler(cfg, dias))
+
+    @app.get("/corretoras")
+    def corretoras_simulacao():
+        return _ler(lambda s: corretoras.simular(s.cfg, s.conta(), s.posicoes(), s.simbolos()))
+
+    @app.get("/spread")
+    def spread_atual():
+        return _ler(lambda s: spread.avaliar(s.cfg, s.simbolos()))
+
     @app.get("/config")
     def config():
         return estado["s"].cfg.model_dump(mode="json")  # senha mascarada
 
-    @app.get("/alertas")
-    def alertas():
-        return _ler(alertas_atuais)
+    @app.get("/atencoes")
+    def atencoes():
+        return _ler(atencoes_atuais)
 
     return app

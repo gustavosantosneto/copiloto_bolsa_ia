@@ -14,5 +14,7 @@ Copiloto de trading integrado ao MetaTrader 5 via Python.
 ## Rodar
 - `pip install -e ".[dev]"` (Python 3.13, `.venv`) · Node 22+
 - `.env` a partir de `.env.example` (login demo)
-- `copiloto painel` → coletor + API + web → http://localhost:5173
-- CLI: `copiloto --help` (`conta`, `posicoes`, `capacidade`, `alertas`, `registro`…)
+- `copiloto painel` → coletor + API + web → http://localhost:5180 (portas em `[api]`/`[painel]`)
+- Terminal fora do VS Code (PowerShell/cmd): `D:\Github\mt5_copiloto_ia\.venv\Scripts\copiloto.exe painel`
+- Inicia com o Windows: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\copiloto_painel.cmd` (apagar o arquivo desliga)
+- CLI: `copiloto --help` → `config`, `conta`, `posicoes`, `ordens`, `historico`, `simbolos`, `capacidade`, `atencoes`, `spread`, `mercado`, `registro`, `base`, `resultado`, `corretoras`, `coletar`, `api`, `painel`

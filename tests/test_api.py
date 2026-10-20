@@ -49,9 +49,11 @@ def test_recursos_da_cli():
         assert c.get("/historico", params={"dias": 7}).json() == [{"dias": 7}]
         assert [x["ticker"] for x in c.get("/simbolos", params={"tickers": "radl3, itub4"}).json()] == ["RADL3", "ITUB4"]
         assert c.get("/capacidade").json()["modo"] == "simulado"
-        assert c.get("/alertas").json()[0]["tipo"] == "simbolo_sem_cotacao"
+        assert c.get("/atencoes").json()[0]["tipo"] == "simbolo_sem_cotacao"
         assert c.get("/config").json()["painel"]["refresh_s"] > 0
-        assert isinstance(c.get("/registro").json(), list)
+        assert isinstance(c.get("/registro").json(), list) and isinstance(c.get("/base").json(), list)
+        assert "drawdown_max" in c.get("/resultado").json()["total"]
+        assert c.get("/spread").json()[0]["status"] == "sem_cotacao"
     assert s.conexoes == 0  # conexão só quando precisa
 
 

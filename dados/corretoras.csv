@@ -1,0 +1,7 @@
+corretora;alavancagem_max_dt;alavancagem_padrao_dt;regra;corretagem_day_trade;plataforma_mt5;fonte;url;data;valido_ate;status
+XP;300;200;teto site 300x (CONTEXTO 2026-10: 200x), restrito por ativo, padrao = medido na demo, irreal p/ real;0;sim;site;https://conteudos.xpi.com.br/aprenda-a-investir/relatorios/alavancagem-financeira-o-que-e/;2026-10-20;2026-11-20;hipotese
+Clear;200;35;faixas por ativo 200/125/50/35x, padrao = menor faixa publicada;0;;site;https://corretora.clear.com.br/estrategias/acoes/;2026-10-20;2026-11-20;hipotese
+Genial;50;25;50x p/ 10 ativos (lista nao publica), ate 25x demais, MetaTrader incluso;0;sim;site;https://suporte.genialinvestimentos.com.br/hc/pt-br/articles/360044566252-O-que-%C3%A9-Alavancagem-Intraday;2026-10-20;2026-11-20;observado
+BTG;100;;margem por ativo em lista propria (pagina JS, nao auditavel);0;;site;https://investimentos.btgpactual.com/renda-variavel/day-trade/lista-de-ativos;2026-10-20;2026-11-20;pendente
+Toro;70;;70x so citado em reclamacao antiga, garantia definida por ativo;;;reclameaqui;https://www.reclameaqui.com.br/toro-investimentos/alavancagem_pSdPGtjkLKWxw59Q/;2026-10-20;2026-11-20;pendente
+Rico;10;;exemplo publico 10x, nao universal;;;gpt_web;;2026-10;2026-11-20;pendente

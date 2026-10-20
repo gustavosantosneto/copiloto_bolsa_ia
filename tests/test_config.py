@@ -36,6 +36,7 @@ def test_config_real_carrega(tmp_path):
     (("perda_max_dia = 20", "perda_max_dia = 120"), "risco.perda_max_dia"),
     (('janela_operacao_fim = "15:00"', 'janela_operacao_fim = "18:00"'), "pregao"),
     (('principal = "M12"', 'principal = "M7"'), "timeframes"),
+    (('"dados/{conta}_historico_trades.csv"', '"dados/h.csv"'), "registro.csv_historico"),
     (("moeda = \"BRL\"", "moeda = \"BRL\"\nmoeda_x = 1"), "geral.moeda_x"),
 ])
 def test_valor_invalido_aponta_campo(tmp_path, troca, campo):
