@@ -2,8 +2,9 @@
 
 Base = retornos log intradiários (retorno entre pregões descartado), nunca preço — exceto cointegração (log-preço).
 Bruta e residual (sem mercado: desconta beta × média dos OUTROS ativos da watchlist).
-Robustez: dentro × fora da amostra (últimos pct_fora_amostra% do tempo) e estabilidade semanal (fração de semanas
-com o mesmo sinal). Muitos testes ao mesmo tempo → q-valor Benjamini-Hochberg (fdr_max).
+Base = últimos janela_sessoes (~90 dias); estabilidade semanal (fração de semanas com o mesmo sinal).
+Muitos testes ao mesmo tempo → q-valor Benjamini-Hochberg (fdr_max).
+ao_vivo(): matriz do painel = últimos janela_minutos, ângulo da VWAP de cada minuto (ticks direto do MT5).
 Correlação ≠ causalidade; Granger = antecipação estatística, não causa. Estudo, nunca sinal.
 """
 
@@ -63,10 +64,6 @@ def _residual(r: pd.DataFrame) -> pd.DataFrame:
         beta = r[c].cov(m) / m.var()
         saida[c] = r[c] - beta * m
     return pd.DataFrame(saida)
-
-
-def _corte(df: pd.DataFrame, pct: float) -> pd.Timestamp:
-    return df.index[int(len(df) * (1 - pct / 100))]
 
 
 def _estabilidade(r: pd.DataFrame) -> np.ndarray:
@@ -134,13 +131,8 @@ def calcular(cfg: Config) -> dict:
     precos = _janela(_reamostrar(m1, s.timeframe), s.janela_sessoes).dropna(axis=1, thresh=100)
     tickers = list(precos.columns)
     r = _retornos(precos)
-    corte = _corte(r, s.pct_fora_amostra)
     bases = {"bruta": r, "residual": _residual(r)}
-    matrizes = {}
-    for nome, df in bases.items():
-        matrizes[f"{nome}_total"] = df.corr().values
-        matrizes[f"{nome}_dentro"] = df[df.index < corte].corr().values
-        matrizes[f"{nome}_fora"] = df[df.index >= corte].corr().values
+    matrizes = {nome: df.corr().values for nome, df in bases.items()}
     estab = _estabilidade(bases["residual"])
 
     # cointegração: log-preço (níveis), todos os pares
@@ -153,10 +145,9 @@ def calcular(cfg: Config) -> dict:
 
     pares = []
     for i, j in cpares:
-        rb, rr = matrizes["bruta_total"][i, j], matrizes["residual_total"][i, j]
+        rb, rr = matrizes["bruta"][i, j], matrizes["residual"][i, j]
         tipo = "direta" if rb >= s.limiar_direta else "inversa" if rb <= s.limiar_inversa else None
         pares.append({"a": tickers[i], "b": tickers[j], "bruta": _r(rb), "residual": _r(rr),
-                      "residual_dentro": _r(matrizes["residual_dentro"][i, j]), "residual_fora": _r(matrizes["residual_fora"][i, j]),
                       "estabilidade": _r(estab[i, j], 2), "coint_q": _r(cq[(i, j)], 4), "tipo": tipo})
     pares.sort(key=lambda p: -abs(p["residual"] or 0))
 
@@ -172,25 +163,65 @@ def calcular(cfg: Config) -> dict:
         "calculado_em": datetime.now().isoformat(timespec="seconds"),
         "amostra": {"timeframe": s.timeframe, "timeframe_atraso": s.timeframe_atraso, "inicio": str(r.index[0]),
                     "fim": str(r.index[-1]), "sessoes": len(set(r.index.date)), "candles": len(r),
-                    "candles_atraso": len(r1), "fora_amostra_desde": str(corte), "pct_fora_amostra": s.pct_fora_amostra},
+                    "candles_atraso": len(r1)},
         "tickers": tickers,
         "matrizes": {k: [[_r(v) for v in linha] for linha in m] for k, m in matrizes.items()}
                     | {"estabilidade": [[_r(v, 2) for v in linha] for linha in estab]},
         "pares": pares,
         "atrasos": [{"lider": a["lider"], "seguidor": a["seguidor"], "lag_min": a["lag"] * _minutos(s.timeframe_atraso),
                      "rho": _r(a["rho"]), "q": _r(a["q"], 4), "granger_q": _r(a.get("granger_q"), 4)} for a in atrasos],
-        "limites": "demo; retornos log intradiários; correlação ≠ causalidade; Granger = antecipação estatística; "
+        "limites": "demo; ~90 dias; retornos log intradiários; correlação ≠ causalidade; Granger = antecipação estatística; "
                    "passado ≠ previsão; validar fora da amostra antes de usar",
     }
 
 
 def gravar(cfg: Config) -> Path:
+    d = calcular(cfg)
     destino = RAIZ / cfg.similaridade.arquivo
     destino.parent.mkdir(parents=True, exist_ok=True)
-    destino.write_text(json.dumps(calcular(cfg), ensure_ascii=False), encoding="utf-8")
+    destino.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
     return destino
 
 
 def ler(cfg: Config) -> dict | None:
     caminho = RAIZ / cfg.similaridade.arquivo
     return json.loads(caminho.read_text(encoding="utf-8")) if caminho.exists() else None
+
+
+def ao_vivo(servico, cfg: Config, agora: datetime | None = None) -> dict:
+    """Matriz dos últimos janela_minutos da sessão atual (ou da última, fora do pregão), direto do MT5.
+
+    Preço de cada minuto = VWAP dos negócios do minuto; ângulo = ln(P_t / P_t−1) em bps. Medidas por par:
+    bruta e sem mercado (mesmo minuto); correlação e razão com deslocamento ±desvio_max_candles (melhor k).
+    """
+    from copiloto import estudo_vwap  # estudo_vwap importa este módulo
+
+    s, agora = cfg.similaridade, agora or datetime.now()
+    precos = {}
+    for t in cfg.universo.watchlist:
+        neg = [x for bloco in servico.negocios(t, agora - pd.Timedelta(days=4), agora) for x in bloco if x[4] > 0]
+        if neg:
+            df = pd.DataFrame(neg, columns=["t", "bid", "ask", "ultimo", "volume", "flags"])
+            df["min"] = pd.to_datetime(df["t"] // 60_000 * 60_000, unit="ms")
+            g = df.assign(pv=df["ultimo"] * df["volume"]).groupby("min")
+            precos[t] = g["pv"].sum() / g["volume"].sum()
+    p = pd.DataFrame(precos).sort_index()
+    p = p.between_time(cfg.pregao.abertura, cfg.pregao.fechamento)  # fora do pregão (leilão/after) não conta
+    p = p[p.index.date == p.index[-1].date()]  # só a última sessão
+    p = p[p.index > p.index[-1] - pd.Timedelta(minutes=s.janela_minutos)]
+    p = p.reindex(pd.date_range(p.index[0], p.index[-1], freq="1min")).ffill()  # minuto sem negócio = parado
+    ang = (_retornos(p) * 10_000).dropna(axis=1, how="any")
+    tickers = list(ang.columns)
+    desl = estudo_vwap.por_deslocamento(ang, s.desvio_max_candles)
+    mats = {"bruta": ang.corr().values, "residual": _residual(ang).corr().values,
+            "angulo_corr": desl["corr"], "angulo_razao": desl["razao"]}
+    return {
+        "calculado_em": agora.isoformat(timespec="seconds"),
+        "amostra": {"inicio": str(ang.index[0]), "fim": str(ang.index[-1]), "minutos": len(ang),
+                    "desvio_max_candles": s.desvio_max_candles, "fonte": "VWAP de cada minuto (ticks)"},
+        "tickers": tickers,
+        "matrizes": {k: [[_r(v) for v in linha] for linha in m] for k, m in mats.items()}
+                    | {"angulo_corr_k": desl["corr_k"].tolist(), "angulo_razao_k": desl["razao_k"].tolist()},
+        "limites": f"{len(ang)} minutos = poucos pontos: |ρ| < ~{2 / math.sqrt(max(len(ang), 4)):.2f} pode ser acaso "
+                   f"(±k: melhor de {2 * s.desvio_max_candles + 1} deslocamentos, tende a sair maior); estudo, nunca sinal",
+    }

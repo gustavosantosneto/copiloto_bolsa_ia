@@ -45,3 +45,59 @@ def limites(cfg: Config, cap: dict, posicoes: list[dict], deals_hoje: list[dict]
         atencao("divergencia_margem", f"Δmargem R$ {m['delta_margem']:.2f} × prevista MT5 R$ {m['margem_prevista_mt5']:.2f} "
                                      f"({m['divergencia_pct']:.1f}%)", ticker=m["ticker"], horario=m["data_hora"])
     return atencoes
+
+
+def concentracao(cfg: Config, posicoes: list[dict], sim: dict | None) -> list[dict]:
+    """Atenção quando ≥ X% do valor aberto está em posições que andam juntas com o resto da carteira.
+
+    Por posição: correlação média com as outras, ponderada pelo valor e ajustada pela direção
+    (mesma direção × ρ; opostas × −ρ → hedge reduz). Fonte: similaridade bruta (`copiloto similaridade`).
+    """
+    if not sim:
+        return []
+    r, idx, m = cfg.risco, {t: i for i, t in enumerate(sim["tickers"])}, sim["matrizes"]["bruta"]
+    valor: dict[str, float] = {}  # valor com sinal: compra +, venda −
+    for p in posicoes:
+        if p["ticker"] in idx:
+            v = p["volume"] * p["preco_atual"]
+            valor[p["ticker"]] = valor.get(p["ticker"], 0) + (v if p["direcao"] == "compra" else -v)
+    tickers = [t for t, v in valor.items() if v]
+    if len(tickers) < r.min_posicoes_carteira:
+        return []
+    total = sum(abs(valor[t]) for t in tickers)
+    media = {}
+    for a in tickers:
+        outros = [b for b in tickers if b != a]
+        peso = sum(abs(valor[b]) for b in outros)
+        media[a] = sum(abs(valor[b]) * (m[idx[a]][idx[b]] or 0) * (1 if (valor[a] > 0) == (valor[b] > 0) else -1)
+                       for b in outros) / peso
+    juntos = sorted((t for t in tickers if media[t] >= r.atencao_correlacao_posicoes), key=lambda t: -media[t])
+    pct = sum(abs(valor[t]) for t in juntos) / total * 100
+    if pct < r.atencao_concentracao_exposicao_pct:
+        return []
+    return [{"tipo": "concentracao", "tickers": juntos,
+             "msg": f"{pct:.0f}% do valor aberto em posições com correlação média ≥ {r.atencao_correlacao_posicoes * 100:.0f}% "
+                    f"→ risco somado"}]
+
+
+def hedge(cfg: Config, posicoes: list[dict]) -> list[dict]:
+    """Seguro contra o mercado: valor no lado oposto (minoritário) ≥ hedge_min_pct do valor aberto.
+
+    Ações da watchlist andam juntas com o mercado (correlação bruta > 0) → lado oposto compensa parte de um
+    movimento forte contra o lado principal. Só com ≥ min_posicoes_carteira ativos na watchlist.
+    """
+    r = cfg.risco
+    valor: dict[str, float] = {}
+    for p in posicoes:
+        if p["ticker"] in cfg.universo.watchlist:
+            v = p["volume"] * p["preco_atual"]
+            valor[p["ticker"]] = valor.get(p["ticker"], 0) + (v if p["direcao"] == "compra" else -v)
+    valor = {t: v for t, v in valor.items() if v}
+    if len(valor) < r.min_posicoes_carteira:
+        return []
+    compra, venda = sum(v for v in valor.values() if v > 0), -sum(v for v in valor.values() if v < 0)
+    pct = min(compra, venda) / (compra + venda) * 100
+    if pct >= r.hedge_min_pct:
+        return []
+    lado = "vendido" if venda > compra else "comprado"
+    return [{"tipo": "hedge_baixo", "msg": f"hedge {pct:.0f}% < {r.hedge_min_pct:.0f}%: carteira {lado} sem seguro do lado oposto"}]

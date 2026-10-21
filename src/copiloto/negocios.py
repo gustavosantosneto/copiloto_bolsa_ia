@@ -28,7 +28,7 @@ def ms(horario: str) -> int:
 
 
 def atualizar(servico, cfg: Config, agora: datetime | None = None) -> dict[str, int | str]:
-    """Watchlist: 1ª vez = dias_iniciais; depois só depois do último negócio gravado."""
+    """Watchlist: 1ª vez = dias_iniciais_ticks; depois só depois do último negócio gravado."""
     agora, saida = agora or datetime.now(), {}
     existe = {s["ticker"]: s.get("existe", True) for s in servico.simbolos()}
     with conectar(cfg) as con:
@@ -38,7 +38,7 @@ def atualizar(servico, cfg: Config, agora: datetime | None = None) -> dict[str, 
                 continue
             (ultimo,) = con.execute("SELECT MAX(t) FROM negocios WHERE ticker = ?", (t,)).fetchone()
             desde = (datetime.fromtimestamp((ultimo + 1) / 1000, UTC).replace(tzinfo=None) if ultimo
-                     else agora - timedelta(days=cfg.mercado.dias_iniciais))
+                     else agora - timedelta(days=cfg.mercado.dias_iniciais_ticks))
             n = 0
             for bloco in servico.negocios(t, desde, agora):
                 novos = [(t, *x) for x in bloco if not ultimo or x[0] > ultimo]

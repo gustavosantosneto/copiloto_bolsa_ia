@@ -6,7 +6,7 @@ import sys
 import typer
 
 from copiloto import corretoras as corr, diagnostico as diag, medicao, mercado as merc, negocios, resultado as res
-from copiloto import similaridade as simil, spread as sprd
+from copiloto import estudo_vwap, similaridade as simil, spread as sprd
 from copiloto.capacidade import calcular
 from copiloto.coletor import Coletor
 from copiloto.guardas import atencoes_atuais
@@ -196,6 +196,18 @@ def similaridade():
     typer.echo(f"{simil.gravar(cfg)} atualizado", err=True)
     d = simil.ler(cfg)
     _json({"amostra": d["amostra"], "pares_mais_fortes": d["pares"][:10], "atrasos": d["atrasos"][:10]})
+
+
+@app.command("estudo-vwap")
+def estudo_vwap_cmd(sessoes: int = typer.Option(63, help="últimas N sessões (63 ≈ 90 dias)"),
+                    fonte: str = typer.Option("ticks", help="ticks (VWAP exata do minuto) | ohlc4 ((O+H+L+C)/4 do M1)")):
+    """Estudo: similaridade pelo ângulo da VWAP de cada minuto → data/mercado/estudo_vwap.json. Estudo, nunca sinal."""
+    from copiloto.config import RAIZ
+
+    cfg = _cfg()
+    d = estudo_vwap.calcular(cfg, sessoes, fonte)
+    (RAIZ / cfg.mercado.pasta / "estudo_vwap.json").write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    _json({"amostra": d["amostra"], "pares_mais_similares": d["pares"][:10], "limites": d["limites"]})
 
 
 @app.command()

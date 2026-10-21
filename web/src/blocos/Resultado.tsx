@@ -21,7 +21,7 @@ export function Resultado({ res }: { res?: TRes }) {
       </Card>
     );
   return (
-    <Card id="resultado" acoes={abas} titulo={<>Resultado realizado <span className="sub">{t ? `${t.dias} dias · custos B3 estimados quando MT5 não lança` : ""}</span></>}>
+    <Card id="resultado" acoes={abas} titulo={<>Resultado realizado <span className="sub">{t ? `30 dias (${t.dias} com operação) · custos B3 estimados quando MT5 não lança` : ""}</span></>}>
       {t && (
         <div className="grade">
           <div className="item"><span className="rotulo">Líquido</span><span className={`valor ${sinal(t.liquido)}`}>{brl(t.liquido)}</span></div>

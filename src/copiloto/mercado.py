@@ -24,6 +24,41 @@ def _duracao(tf: str) -> timedelta:
     return timedelta(minutes=MINUTOS[tf[0]] * int(tf[1:] or 1)) if tf != "MN1" else timedelta(days=31)
 
 
+def _primeiro(caminho: Path) -> str | None:
+    if not caminho.exists():
+        return None
+    with open(caminho, encoding="utf-8") as f:
+        f.readline()
+        h = f.readline().split(";", 1)[0]
+    return h or None
+
+
+def _linha(v: dict, ponto: float) -> dict:
+    return {"data_hora": v["horario"], **{k: v[k] for k in COLUNAS[1:-1]},
+            "spread_pct": round(v["spread_pts"] * ponto / v["fechamento"] * 100, 4) if v["fechamento"] else ""}
+
+
+def _completar_inicio(servico, caminho: Path, t: str, inicio: datetime, ponto: float) -> int:
+    """Arquivo começa depois de `inicio` (dias_iniciais aumentou) → busca o trecho anterior e reescreve com ele na frente."""
+    primeiro = _primeiro(caminho)
+    if not primeiro or datetime.fromisoformat(primeiro) - inicio < timedelta(days=1):
+        return 0
+    velas = [v for v in servico.candles(t, inicio, datetime.fromisoformat(primeiro)) if v["horario"] < primeiro]
+    if not velas:
+        return 0
+    with open(caminho, newline="", encoding="utf-8") as f:
+        f.readline()  # cabeçalho
+        antigo = f.read()
+    tmp = caminho.with_suffix(".tmp")
+    with open(tmp, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, COLUNAS, delimiter=";")
+        w.writeheader()
+        w.writerows(_linha(v, ponto) for v in velas)
+        f.write(antigo)
+    tmp.replace(caminho)
+    return len(velas)
+
+
 def _ultimo(caminho: Path) -> str | None:
     if not caminho.exists():
         return None
@@ -34,7 +69,7 @@ def _ultimo(caminho: Path) -> str | None:
 
 
 def atualizar(servico, cfg: Config, agora: datetime | None = None) -> dict[str, int | str]:
-    """Watchlist: 1ª vez = dias_iniciais; depois só o que falta. Retorna candles novos por ticker."""
+    """Watchlist: 1ª vez = dias_iniciais; depois só o que falta (no fim e, se dias_iniciais aumentou, no início)."""
     m, agora = cfg.mercado, agora or datetime.now()  # servidor XP = horário local
     (RAIZ / m.pasta).mkdir(parents=True, exist_ok=True)
     pontos = {s["ticker"]: s.get("ponto") for s in servico.simbolos()}
@@ -43,8 +78,10 @@ def atualizar(servico, cfg: Config, agora: datetime | None = None) -> dict[str, 
         if not pontos.get(t):
             saida[t] = "símbolo inexistente"
             continue
-        caminho, ultimo = arquivo(cfg, t), _ultimo(arquivo(cfg, t))
-        desde = datetime.fromisoformat(ultimo) + dur if ultimo else agora - timedelta(days=m.dias_iniciais)
+        caminho, inicio = arquivo(cfg, t), agora - timedelta(days=m.dias_iniciais)
+        antes = _completar_inicio(servico, caminho, t, inicio, pontos[t])
+        ultimo = _ultimo(caminho)
+        desde = datetime.fromisoformat(ultimo) + dur if ultimo else inicio
         velas = [v for v in servico.candles(t, desde, agora)
                  if (not ultimo or v["horario"] > ultimo) and datetime.fromisoformat(v["horario"]) + dur <= agora]
         novo = not caminho.exists()
@@ -52,10 +89,8 @@ def atualizar(servico, cfg: Config, agora: datetime | None = None) -> dict[str, 
             w = csv.DictWriter(f, COLUNAS, delimiter=";")
             if novo:
                 w.writeheader()
-            w.writerows({"data_hora": v["horario"], **{k: v[k] for k in COLUNAS[1:-1]},
-                         "spread_pct": round(v["spread_pts"] * pontos[t] / v["fechamento"] * 100, 4) if v["fechamento"] else ""}
-                        for v in velas)
-        saida[t] = len(velas)
+            w.writerows(_linha(v, pontos[t]) for v in velas)
+        saida[t] = len(velas) + antes
     return saida
 
 

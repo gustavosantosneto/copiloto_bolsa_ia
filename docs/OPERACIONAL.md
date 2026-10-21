@@ -37,6 +37,9 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Máx. lotes por ativo (`max_lotes_ativo`), inclui os já em carteira.
 - Perda aberta por ativo/total: limite = % do saldo; folga = limite + P&L aberto (entra em 0; −50 → folga 450). Folga ≤ 0 → 0 lotes novos.
 - Evitar concentração; considerar correlação **direta e inversa** entre posições.
+- Atenção de concentração: ≥ `atencao_concentracao_exposicao_pct` do valor aberto em posições cuja correlação média (bruta, ponderada pelo valor, ajustada pela direção: lados opostos = hedge) com as demais ≥ `atencao_correlacao_posicoes`.
+- Hedge (seguro): valor no lado oposto (minoritário) ≥ `hedge_min_pct` do valor aberto; abaixo → atenção. Respiro se o mercado andar forte contra o lado principal.
+- Concentração e hedge só com ≥ `min_posicoes_carteira` ativos em posição (com menos não faz sentido).
 - Simular entrada adicional → impacto em margem e risco.
 - Spread: `spread_pct = (ask − bid) / meio × 100`. Atenção se > teto (`spread_max_pct`) ou > média do ativo + N ticks (`ticks_acima_media`; M1 das últimas sessões, amostra mínima). Em ticks: spread B3 é quantizado, desvio padrão dispara à toa. Só no pregão. Histórico de spread = trava de apoio, nunca sinal de entrada.
 
@@ -61,11 +64,13 @@ Toda compra/venda, de qualquer ativo, **obrigatoriamente** registra:
 - Janelas, limites, indicadores configuráveis.
 - Robustez: fora da amostra, estabilidade por janela, tamanho da amostra.
 - Usos: antecipação, convergência, reversão à média, hedge (pares inversos).
-- Implementado (`copiloto similaridade` → `/similaridade`; página Similaridade do painel):
-  - Correlação Pearson em M12, **bruta** e **sem mercado** (desconta beta × média dos outros ativos); janela toda, dentro e fora da amostra; estabilidade = fração das semanas com o mesmo sinal.
-  - Atraso líder→seguidor em M1 (sem mercado, até `lag_max_candles`, só dentro do dia) + Granger nos mais fortes.
-  - Cointegração (Engle-Granger) no log-preço M12.
-  - Muitos testes → q-valor Benjamini-Hochberg (`fdr_max`). Significativo ≠ útil: ρ pequeno não paga spread/custo.
+- Base de uso = últimos 90 dias (M1, ticks, `copiloto similaridade` p/ concentração). Sem 11 meses, sem dentro × fora.
+- Matriz do painel = últimos `janela_minutos` (60) de pregão, ao vivo do MT5: preço de cada minuto = VWAP dos negócios do minuto; ângulo = ln(P_t/P_t−1).
+  - Bruta e sem mercado (desconta beta × média dos outros ativos), mesmo minuto.
+  - Correlação ±k e razão ±k: A_t × B_t+k, |k| ≤ `desvio_max_candles` (12), só dentro do dia; melhor k por par. Razão = menor/maior por minuto (sinal oposto → negativo; dois parados (ângulo 0) = 100%; um parado = 0).
+  - 60 pontos: |ρ| < ~0,26 pode ser acaso; melhor de 25 deslocamentos tende a sair maior.
+- `copiloto similaridade` (90 dias): correlação M12 bruta/sem mercado, estabilidade semanal, atraso M1, cointegração, Granger, q-valor BH. Significativo ≠ útil.
+- `copiloto estudo-vwap` (90 dias, ticks ou (O+H+L+C)/4): ângulo da VWAP de cada minuto, Pearson bruta/sem mercado, correlação/razão ±k.
 
 ## 7. Análise técnica e estratégias
 - VWAP diária, semanal, semana anterior; EMA24; RSI(10). Detalhe do terminal em [CONTEXTO.md](CONTEXTO.md).

@@ -112,6 +112,9 @@ class Risco(Secao):
     max_posicoes_abertas: int = Field(gt=0)
     max_lotes_ativo: int = Field(gt=0)
     atencao_correlacao_posicoes: float = Field(gt=0, le=1)
+    atencao_concentracao_exposicao_pct: float = Pct
+    hedge_min_pct: float = Pct
+    min_posicoes_carteira: int = Field(ge=2)
 
     @model_validator(mode="after")
     def _ativo_ate_total(self):
@@ -149,12 +152,13 @@ class Persistencia(Secao):
 
 class Similaridade(Secao):
     janela_sessoes: int = Field(gt=1)
+    janela_minutos: int = Field(gt=1)
     metodo_padrao: Literal["pearson", "xcorr", "dtw", "coint", "granger"]
     base: str
     limiar_direta: float = Field(gt=0, le=1)
     limiar_inversa: float = Field(ge=-1, lt=0)
     lag_max_candles: int = Field(ge=0)
-    pct_fora_amostra: float = Field(gt=0, lt=100)
+    desvio_max_candles: int = Field(ge=0)
     timeframe: str
     timeframe_atraso: str
     fdr_max: float = Field(gt=0, lt=1)
@@ -194,6 +198,7 @@ class Atencoes(Secao):
 class Mercado(Secao):
     timeframe: str
     dias_iniciais: int = Field(gt=0)
+    dias_iniciais_ticks: int = Field(gt=0)
     bloco_dias: int = Field(gt=0)
     pasta: str
     banco_ticks: str

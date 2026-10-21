@@ -84,7 +84,6 @@ tr.ordem td { font-style: italic; }
 .area[hidden] { display: none; }
 .similaridade { flex: 1 1 auto; display: flex; gap: var(--esp); min-height: 0; min-width: 0; }
 .matriz-bloco { flex: 1 1 auto; }
-.lista-sim { flex: 0 0 22%; min-width: 220px; }
 .matriz { flex: 1 1 auto; height: 100%; table-layout: fixed; font-size: clamp(9px, 1.1cqi, 13px); margin-top: var(--esp-p); }
 .matriz th { text-align: center; padding: 0; white-space: nowrap; overflow: hidden; }
 .matriz tbody th { text-align: right; padding-right: var(--esp-p); }
@@ -101,6 +100,4 @@ main.uma-coluna .bloco:not(.recolhido) { min-height: 260px; }
   #raiz { overflow: auto; }
   .area { flex-direction: column; }
   .lateral { max-width: none; flex: 0 0 auto; max-height: 300px; }
-  .similaridade { flex-direction: column; }
-  .lista-sim { flex: 0 0 auto; max-height: 300px; }
 }

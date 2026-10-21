@@ -56,7 +56,10 @@ margem_usada_max_pct = 20.0        # % do patrimônio; base = margem usada (limi
 nivel_margem_min_pct = 2000      # atenção abaixo disso
 max_posicoes_abertas = 10
 max_lotes_ativo = 15               # [pref] 2026-10-19 lotes padrão por ativo (inclui os já em carteira)
-atencao_correlacao_posicoes = 0.8   # |ρ| entre todos ativos
+atencao_correlacao_posicoes = 0.8   # [pref] 2026-10-20 correlação média (bruta, ajustada pela direção) de cada posição com as outras
+atencao_concentracao_exposicao_pct = 80.0  # [pref] 2026-10-20 % do valor aberto em posições acima dessa média → atenção
+hedge_min_pct = 20.0               # [pref] 2026-10-20 valor no lado oposto (seguro) ≥ X% do valor aberto; abaixo → atenção
+min_posicoes_carteira = 3          # [pref] 2026-10-20 concentração e hedge só com ≥ N ativos em posição
 
 [simulacao]                        # só ambiente=demo; em real ignorado (usa conta + MT5)
 capital_simulado = 5000.0          # [pref] 2026-10-19 R$; demo tem ~R$1mi irreal. 0 = usar conta
@@ -76,17 +79,18 @@ min_medicoes_margem_validada = 3   # medições p/ considerar margem confiável
 banco = "data/copiloto.sqlite"     # data/ fora do git
 
 [similaridade]                     # V2
-janela_sessoes = 100
+janela_sessoes = 63                # [pref] 2026-10-20 base de uso = ~90 dias (concentração, `copiloto similaridade`)
+janela_minutos = 60                # [pref] 2026-10-20 matriz do painel = últimos N minutos, ao vivo
 metodo_padrao = "pearson"          # pearson | xcorr | dtw | coint | granger
 base = "retorno_log"
 limiar_direta = 0.7
 limiar_inversa = -0.5
 lag_max_candles = 10
-pct_fora_amostra = 30
+desvio_max_candles = 12           # [pref] 2026-10-20 ângulo: compara A_t com B_t±k, k ≤ N (M1 → 12 min), só dentro do dia
 timeframe = "M12"                  # [pref] 2026-10-20 correlação (gráfico principal)
 timeframe_atraso = "M1"            # [pref] 2026-10-20 atraso líder→seguidor (lag_max_candles em M1 = até 10 min)
 fdr_max = 0.05                     # [hip] q-valor máx. (Benjamini-Hochberg) p/ atraso/Granger/cointegração "significativo"
-arquivo = "data/mercado/similaridade.json"  # resultado do `copiloto similaridade` (API só lê)
+arquivo = "data/mercado/similaridade.json"  # resultado do `copiloto similaridade` (90 dias; concentração lê daqui)
 
 [indicadores]                      # V3
 ema_periodo = 24                   # [obs] method=1
@@ -109,7 +113,8 @@ margem_zero_com_posicao = true     # anomalia XP Demo
 
 [mercado]                          # candles p/ estudo (dado de mercado = estudo/fixture, nunca sinal)
 timeframe = "M1"
-dias_iniciais = 90                 # [pref] 2026-10-20 1ª carga; depois incremental (`copiloto mercado`)
+dias_iniciais = 90                 # [pref] 2026-10-20 base de uso = 90 dias de M1; faltando no início → completa p/ trás
+dias_iniciais_ticks = 90           # [pref] 2026-10-20 negócios tick a tick (~1,2 GB / 90 d)
 bloco_dias = 7                     # [obs] 2026-10-20 SDK recusa intervalo M1 longo (~>60 d) → busca em blocos
 pasta = "data/mercado"             # fora do git (volume)
 banco_ticks = "data/mercado/ticks.sqlite"  # negócios tick a tick (~1 mi/ativo/90 d)

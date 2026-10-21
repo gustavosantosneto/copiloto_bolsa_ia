@@ -1,41 +1,36 @@
-// Página Similaridade (V2): matriz 17×17 de correlação dos retornos; opacidade = |ρ| (irrelevante quase some).
-// Estudo, nunca sinal. Calculada por `copiloto similaridade`; aqui só leitura.
+// Página Similaridade: matriz 17×17 dos últimos N minutos de pregão (ao vivo, ângulo da VWAP de cada minuto).
+// Triângulo de baixo e de cima com métodos escolhidos (aproveita a simetria). Opacidade = |ρ|. Estudo, nunca sinal.
 import { useState } from "react";
 import { usePoll } from "./api";
 import { num } from "./formato";
 
-type Par = {
-  a: string; b: string; bruta: number; residual: number; residual_dentro: number; residual_fora: number;
-  estabilidade: number | null; coint_q: number | null; tipo: string | null;
-};
-type Atraso = { lider: string; seguidor: string; lag_min: number; rho: number; q: number; granger_q: number | null };
 type TSim = {
-  calculado_em: string; tickers: string[]; matrizes: Record<string, (number | null)[][]>; pares: Par[]; atrasos: Atraso[];
-  amostra: { timeframe: string; inicio: string; fim: string; sessoes: number; candles: number; fora_amostra_desde: string };
-  limites: string;
+  calculado_em: string; tickers: string[]; matrizes: Record<string, number[][]>; limites: string;
+  amostra: { inicio: string; fim: string; minutos: number; desvio_max_candles: number };
 };
 
-const BASES = { bruta: "Bruta", residual: "Sem mercado" } as const;
-const PERIODOS = { total: "Janela toda", dentro: "Dentro da amostra", fora: "Fora da amostra" } as const;
+const METODOS = {
+  bruta: "Bruta", residual: "Sem mercado", angulo_corr: "Correlação ±k", angulo_razao: "Razão ±k",
+} as const;
+type Metodo = keyof typeof METODOS;
 
 export function Similaridade() {
   const { dados: d, erro } = usePoll<TSim>("/similaridade", 60_000);
-  const [base, setBase] = useState<keyof typeof BASES>("residual");
-  const [periodo, setPeriodo] = useState<keyof typeof PERIODOS>("total");
-  if (!d) return <div className="vazio">{erro ?? "Carregando…"}</div>;
-  const m = d.matrizes[`${base}_${periodo}`];
-  const par = (a: string, b: string) => d.pares.find((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a));
+  const [baixo, setBaixo] = useState<Metodo>("angulo_razao");
+  const [cima, setCima] = useState<Metodo>("angulo_corr");
+  if (!d) return <div className="vazio">{erro ?? "Calculando…"}</div>;
+  const k = (met: Metodo, i: number, j: number) => d.matrizes[`${met}_k`]?.[i]?.[j];
   const dica = (i: number, j: number) => {
-    const p = par(d.tickers[i], d.tickers[j]);
-    if (!p) return "";
-    return `${p.a} × ${p.b}\nbruta ${num(p.bruta * 100, 0)}% · sem mercado ${num(p.residual * 100, 0)}%\n` +
-      `dentro ${num(p.residual_dentro * 100, 0)}% → fora ${num(p.residual_fora * 100, 0)}%\n` +
-      `mesmo sinal em ${num((p.estabilidade ?? 0) * 100, 0)}% das semanas · cointegração q=${num(p.coint_q, 3)}`;
+    const linhas = (Object.keys(METODOS) as Metodo[]).map((met) => {
+      const desl = k(met, i, j);
+      return `${METODOS[met]}: ${num(d.matrizes[met][i][j] * 100, 0)}%${desl == null ? "" : ` (deslocamento ${desl > 0 ? "+" : ""}${desl} min)`}`;
+    });
+    return `${d.tickers[i]} × ${d.tickers[j]}\n${linhas.join("\n")}`;
   };
-  const seletor = <T extends string>(opcoes: Record<T, string>, atual: T, set: (v: T) => void) => (
+  const seletor = (atual: Metodo, set: (v: Metodo) => void) => (
     <div className="abas">
-      {(Object.keys(opcoes) as T[]).map((k) => (
-        <button key={k} className={k === atual ? "ativa" : ""} onClick={() => set(k)}>{opcoes[k]}</button>
+      {(Object.keys(METODOS) as Metodo[]).map((met) => (
+        <button key={met} className={met === atual ? "ativa" : ""} onClick={() => set(met)}>{METODOS[met]}</button>
       ))}
     </div>
   );
@@ -45,11 +40,11 @@ export function Similaridade() {
       <section className="bloco matriz-bloco">
         <div className="cabecalho">
           <h2>Similaridade <span className="sub">
-            retornos {d.amostra.timeframe} · {d.amostra.sessoes} sessões ({d.amostra.inicio.slice(0, 10)} → {d.amostra.fim.slice(0, 10)})
-            · fora da amostra desde {d.amostra.fora_amostra_desde.slice(0, 10)} · calculado {d.calculado_em.slice(0, 16).replace("T", " ")}
+            últimos {d.amostra.minutos} min de pregão ({d.amostra.inicio.slice(11, 16)} → {d.amostra.fim.slice(11, 16)}
+            {" "}de {d.amostra.fim.slice(0, 10)}) · VWAP de cada minuto · ±k até {d.amostra.desvio_max_candles} min
           </span></h2>
-          {seletor(BASES, base, setBase)}
-          {seletor(PERIODOS, periodo, setPeriodo)}
+          <span className="sub">◣ abaixo</span>{seletor(baixo, setBaixo)}
+          <span className="sub">◥ acima</span>{seletor(cima, setCima)}
         </div>
         <table className="matriz">
           <thead>
@@ -60,7 +55,7 @@ export function Similaridade() {
               <tr key={ti}>
                 <th>{ti}</th>
                 {d.tickers.map((tj, j) => {
-                  const v = m[i][j] ?? 0;
+                  const v = d.matrizes[i > j ? baixo : cima][i][j] ?? 0; // ◣ abaixo da diagonal × ◥ acima
                   const forca = i === j ? 1 : Math.abs(v);
                   return (
                     <td key={tj} title={i === j ? ti : dica(i, j)}
@@ -74,27 +69,8 @@ export function Similaridade() {
             ))}
           </tbody>
         </table>
-        <div className="sub">{d.limites}</div>
+        <div className="sub">{d.limites} · atualiza a cada 1 min</div>
       </section>
-      <aside className="bloco lista-sim">
-        <h2>Quem antecipa quem <span className="sub">M1 · sem mercado · q ≤ 5%</span></h2>
-        <div className="sub">ρ perto de 0 = significativo pela amostra grande, mas pouco útil (não paga spread/custo)</div>
-        <div className="corpo">
-          <table>
-            <thead><tr><th>Líder → seguidor</th><th>Atraso</th><th>ρ</th><th>Granger q</th></tr></thead>
-            <tbody>
-              {d.atrasos.slice(0, 40).map((a) => (
-                <tr key={`${a.lider}${a.seguidor}`} style={{ opacity: Math.max(0.35, Math.min(1, Math.abs(a.rho) * 10)) }}>
-                  <td>{a.lider} → {a.seguidor}</td>
-                  <td>{a.lag_min} min</td>
-                  <td className={a.rho >= 0 ? "pos" : "neg"}>{num(a.rho * 100, 1)}%</td>
-                  <td>{a.granger_q == null ? "—" : num(a.granger_q, 3)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </aside>
     </div>
   );
 }

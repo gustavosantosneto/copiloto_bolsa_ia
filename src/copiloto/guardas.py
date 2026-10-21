@@ -45,7 +45,7 @@ def verificar(cfg: Config, conta: dict, posicoes: list[dict], simbolos: list[dic
 
 def atencoes_atuais(servico, agora: datetime | None = None) -> list[dict]:
     """Lê conta/posições/símbolos (watchlist + carteira) do serviço e aplica guardas + limites de risco + spread."""
-    from copiloto import capacidade, registro, risco, spread  # aqui: capacidade/spread importam guardas
+    from copiloto import capacidade, registro, risco, similaridade, spread  # aqui: capacidade/spread importam guardas
 
     cfg, agora = servico.cfg, agora or datetime.now()
     conta, posicoes = servico.conta(), servico.posicoes()
@@ -54,4 +54,4 @@ def atencoes_atuais(servico, agora: datetime | None = None) -> list[dict]:
     watch = [s for s in simbolos if s["ticker"] in cfg.universo.watchlist]
     cap = capacidade.calcular(cfg, conta, posicoes, watch, lambda t, v, p: servico.margem_prevista(t, "compra", v, p), agora)
     return (verificar(cfg, conta, posicoes, simbolos, agora) + risco.limites(cfg, cap, posicoes, registro.ler(cfg, 1))
-            + spread.atencoes(cfg, spread.avaliar(cfg, watch), agora))
+            + spread.atencoes(cfg, spread.avaliar(cfg, watch), agora) + risco.concentracao(cfg, posicoes, similaridade.ler(cfg)) + risco.hedge(cfg, posicoes))

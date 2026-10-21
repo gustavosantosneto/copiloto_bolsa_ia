@@ -93,11 +93,8 @@ def criar_app(fabrica: Callable[[], ServicoMT5] = lambda: ServicoMT5(carregar_co
         return diagnostico.calcular(cfg, registro.ler(cfg, dias))
 
     @app.get("/similaridade")
-    def similaridade_calculada():
-        d = similaridade.ler(estado["s"].cfg)
-        if d is None:
-            raise HTTPException(404, "sem cálculo: rode `copiloto similaridade`")
-        return d
+    def similaridade_ao_vivo():
+        return _ler(lambda s: similaridade.ao_vivo(s, s.cfg))  # últimos janela_minutos, direto do MT5
 
     @app.get("/spread")
     def spread_atual():
